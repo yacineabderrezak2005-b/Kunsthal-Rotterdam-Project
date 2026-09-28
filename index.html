@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KUNSTHAL — Rotterdam · OMA / Rem Koolhaas · The Free Section</title>
+<meta name="description" content="An interactive architectural analysis of the Kunsthal Rotterdam by OMA / Rem Koolhaas — the free section, programmatic complexity and informal structure.">
+
+<!-- Typography: Anton (display) · Space Grotesk (body) · IBM Plex Mono (technical) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Icon library -->
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+<style>
+/* ============================================================
+   0. TOKENS & RESET
+   ============================================================ */
+:root{
+  --ink:#101010;
+  --paper:#E8E4DB;
+  --paper2:#DCD7CB;
+  --orange:#FF4D00;
+  --gray:#8b877e;
+  --noise:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  --disp:'Anton',sans-serif;
+  --body:'Space Grotesk',sans-serif;
+  --mono:'IBM Plex Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:72px;overflow-x:clip}
+body{
+  font-family:var(--body);
+  background:var(--paper);
+  color:var(--ink);
+  font-size:16px;line-height:1.6;
+  overflow-x:clip;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--orange);color:var(--ink)}
+img{display:block;max-width:100%}
+a{color:inherit}
+button{font:inherit;cursor:pointer;background:none;border:none;color:inherit}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:var(--paper2)}
+::-webkit-scrollbar-thumb{background:var(--ink)}
+::-webkit-scrollbar-thumb:hover{background:var(--orange)}
+:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+
+/* film grain over everything — material, not decoration */
+.grain{position:fixed;inset:0;z-index:2000;pointer-events:none;background-image:var(--noise);opacity:.055}
+
+/* section theming */
+.sec{--bg:var(--paper);--fg:var(--ink);--ln:rgba(16,16,16,.16);--mut:rgba(16,16,16,.6);
+  background:var(--bg);color:var(--fg);position:relative}
+.sec--dark{--bg:#141412;--fg:var(--paper);--ln:rgba(232,228,219,.18);--mut:rgba(232,228,219,.6)}
+
+/* ============================================================
+   1. UTILITIES
+   ============================================================ */
+.wrap{max-width:1280px;margin:0 auto;padding:0 clamp(18px,4vw,56px)}
+.mono{font-family:var(--mono);letter-spacing:.05em}
+.kicker{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--orange)}
+.rule{height:1px;background:var(--ln)}
+.chip{
+  font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  border:1px solid var(--fg);padding:10px 16px;display:inline-flex;align-items:center;gap:8px;
+  transition:background .2s,color .2s,border-color .2s;background:transparent;
+}
+.chip svg{width:13px;height:13px}
+.chip:hover{background:var(--fg);color:var(--bg)}
+.chip.on{background:var(--orange);border-color:var(--orange);color:var(--ink)}
+.chip-o{border-color:var(--orange);color:var(--orange)}
+.chip-o:hover{background:var(--orange);color:var(--ink)}
+.chip-o.on{background:var(--orange);color:var(--ink)}
+
+/* reveal on scroll */
+.rv{opacity:0;transform:translateY(26px);transition:opacity .8s ease,transform .8s cubic-bezier(.2,.7,.2,1);transition-delay:var(--d,0s)}
+.rv.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){
+  .rv{transition:none;opacity:1;transform:none}
+  html{scroll-behavior:auto}
+}
+
+/* ============================================================
+   2. FIXED NAV + LEVEL METER
+   ============================================================ */
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:1000;
+  mix-blend-mode:difference;color:#fff;
+  display:flex;align-items:center;gap:22px;
+  padding:14px clamp(16px,3vw,40px);
+  border-bottom:1px solid rgba(255,255,255,.25);
+  backdrop-filter:blur(2px);
+}
+.nav-brand{font-family:var(--disp);font-size:19px;letter-spacing:.04em;white-space:nowrap}
+.nav-brand small{font-family:var(--mono);font-size:10px;letter-spacing:.2em;display:block;opacity:.7}
+.nav-links{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;margin-left:auto}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-l{
+  font-family:var(--mono);font-size:11px;letter-spacing:.1em;padding:6px 9px;
+  text-decoration:none;opacity:.65;white-space:nowrap;transition:opacity .2s;
+}
+.nav-l:hover{opacity:1}
+.nav-l.cur{opacity:1;background:#fff;color:#000}
+.nav-read{font-family:var(--mono);font-size:10px;letter-spacing:.14em;white-space:nowrap;opacity:.8;display:none}
+@media (min-width:1100px){.nav-read{display:block}}
+
+#lvl{position:fixed;left:26px;top:50%;transform:translateY(-50%);z-index:900;pointer-events:none;display:none}
+@media (min-width:1200px){#lvl{display:block}}
+#lvl .trk{position:relative;width:1px;height:44vh;background:rgba(16,16,16,.3);margin-left:5px}
+#lvl .tick{position:absolute;left:-4px;width:9px;height:1px;background:rgba(16,16,16,.4)}
+#lvl .dot{position:absolute;left:1px;width:9px;height:9px;background:var(--orange);transform:translate(-4px,-4px);transition:top .1s linear}
+#lvl .val{font-family:var(--mono);font-size:10px;letter-spacing:.15em;margin-top:10px;color:var(--ink)}
+.sec--dark ~ #lvl{background:#fff} /* no-op guard */
+
+/* ============================================================
+   3. HERO
+   ============================================================ */
+.hero{position:relative;min-height:100vh;display:flex;flex-direction:column;color:var(--paper);background:var(--ink)}
+.ph{position:relative}
+.ph-frame{position:relative;aspect-ratio:var(--ar,4/3);overflow:hidden;background:var(--paper2) var(--noise);background-blend-mode:multiply}
+.ph--dark .ph-frame{background:#23211d var(--noise)}
+.ph-frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .9s ease,filter .5s ease,transform .8s cubic-bezier(.2,.7,.2,1);filter:saturate(.82) contrast(1.05)}
+.ph.ok .ph-frame img{opacity:1}
+.ph:hover .ph-frame img{filter:saturate(1) contrast(1.05);transform:scale(1.025)}
+.ph-state{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:rgba(16,16,16,.5);z-index:2;text-transform:uppercase}
+figcaption{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;padding-top:8px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}
+figcaption .cred a{text-decoration:underline;text-underline-offset:2px}
+
+.hero .ph--hero{position:absolute;inset:0;z-index:0}
+.hero .ph--hero .ph-frame{position:absolute;inset:0;aspect-ratio:auto}
+.hero .ph--hero .ph-frame img{filter:grayscale(1) contrast(1.15) brightness(.85)}
+.hero .ph--hero .ph-state{color:rgba(232,228,219,.5);background:rgba(16,16,16,.4)}
+.hero .ph--hero figcaption{position:absolute;right:14px;bottom:12px;z-index:3;color:rgba(232,228,219,.75);padding:6px 10px;background:rgba(16,16,16,.65)}
+.hero-veil{position:absolute;inset:0;background:rgba(12,12,11,.52);z-index:1}
+.hero-in{position:relative;z-index:2;flex:1;display:flex;flex-direction:column;justify-content:flex-end;padding:110px clamp(18px,5vw,72px) 0}
+.hero-kick{font-family:var(--mono);font-size:11px;letter-spacing:.28em;color:var(--paper);display:flex;gap:18px;flex-wrap:wrap;margin-bottom:2vh}
+.hero-kick b{color:var(--orange);font-weight:400}
+.hero-t{font-family:var(--disp);text-transform:uppercase;line-height:.88;display:flex;flex-direction:column;color:var(--paper)}
+.ht-l1,.ht-l2{font-size:clamp(4.2rem,15.5vw,15rem);letter-spacing:.01em}
+.ht-l2{align-self:flex-end;margin-top:.02em}
+.ht-dim{display:flex;align-items:center;gap:14px;margin:1.4vh 0 0;max-width:640px}
+.ht-dim i{flex:1;height:1px;background:var(--paper);position:relative}
+.ht-dim i::before,.ht-dim i::after{content:"";position:absolute;top:-4px;width:1px;height:9px;background:var(--paper)}
+.ht-dim i::before{left:0}.ht-dim i::after{right:0}
+.ht-dim b{font-family:var(--mono);font-weight:500;font-size:clamp(10px,1.4vw,14px);letter-spacing:.2em;color:var(--orange);white-space:nowrap}
+.hero-lead{max-width:560px;margin:3.5vh 0 4vh;font-size:clamp(15px,1.6vw,19px);line-height:1.55;color:rgba(232,228,219,.9)}
+.hero-lead strong{color:var(--paper)}
+.hero-facts{display:flex;gap:clamp(16px,3vw,42px);flex-wrap:wrap;border-top:1px solid rgba(232,228,219,.25);padding:16px 0 22px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+.hero-facts span b{display:block;font-size:17px;letter-spacing:.02em;color:var(--orange);font-weight:500}
+.hero-cue{position:absolute;right:clamp(18px,5vw,72px);bottom:24px;z-index:3;display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:10px;letter-spacing:.24em;color:rgba(232,228,219,.85);writing-mode:vertical-rl}
+.hero-cue svg{width:15px;height:15px;animation:bob 2.2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(8px)}}
+.hero-coord{position:absolute;right:16px;top:96px;z-index:3;writing-mode:vertical-rl;font-family:var(--mono);font-size:9px;letter-spacing:.3em;color:rgba(232,228,219,.5)}
+@media (prefers-reduced-motion:reduce){.hero-cue svg{animation:none}}
+
+/* marquee — the "billboard" facade */
+.mq{overflow:hidden;background:var(--ink);color:var(--paper);border-top:1px solid rgba(232,228,219,.2);border-bottom:1px solid rgba(232,228,219,.2);position:relative;z-index:2}
+.mq-in{display:flex;width:max-content;animation:mq 30s linear infinite}
+.mq-seg{display:flex;align-items:center;gap:26px;padding:13px 13px;font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;white-space:nowrap}
+.mq-seg .sq{width:8px;height:8px;background:var(--orange);flex:none}
+@keyframes mq{to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){.mq-in{animation:none}}
+
+/* ============================================================
+   4. CHAPTER SCAFFOLD
+   ============================================================ */
+.chap{padding:clamp(70px,10vh,130px) 0 clamp(60px,9vh,120px)}
+.chap-h{display:flex;gap:clamp(16px,3vw,40px);align-items:flex-start;margin-bottom:clamp(34px,5vh,60px)}
+.chap-no{font-family:var(--disp);font-size:clamp(3.4rem,8vw,7rem);line-height:.85;color:transparent;-webkit-text-stroke:1.5px var(--fg);flex:none;opacity:.85}
+.chap-h h2{font-family:var(--disp);text-transform:uppercase;font-size:clamp(2rem,4.6vw,4.1rem);line-height:.95;letter-spacing:.01em}
+.chap-h h2 .en{display:block;font-family:var(--mono);font-weight:400;font-size:clamp(11px,1.2vw,13px);letter-spacing:.26em;color:var(--orange);margin-top:14px}
+.chap-kicker{font-family:var(--mono);font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--mut);margin-bottom:12px}
+.lede{font-size:clamp(17px,1.9vw,22px);line-height:1.55;max-width:820px}
+.lede strong{color:var(--orange);font-weight:600}
+.body-copy{max-width:640px;color:var(--fg)}
+.body-copy p+p{margin-top:1em}
+.pull{border-left:3px solid var(--orange);padding:6px 0 6px 22px;font-size:clamp(19px,2.4vw,27px);line-height:1.35;font-weight:500;max-width:760px}
+.pull small{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--mut);margin-top:12px;text-transform:uppercase}
+
+/* ============================================================
+   5. INTRO / 00
+   ============================================================ */
+.intro-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:clamp(30px,5vw,80px)}
+@media (max-width:900px){.intro-grid{grid-template-columns:1fr}}
+.toc{border-top:1px solid var(--ln)}
+.toc a{display:flex;justify-content:space-between;align-items:baseline;gap:14px;text-decoration:none;padding:11px 4px;border-bottom:1px solid var(--ln);font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;transition:background .2s,color .2s}
+.toc a:hover{background:var(--ink);color:var(--paper)}
+.toc a span{color:var(--orange)}
+.toc a i{font-style:normal;opacity:.5;font-size:10px}
+
+/* ============================================================
+   6. CH.01 — THE GROUND
+   ============================================================ */
+.ground-fig{margin:clamp(36px,5vh,60px) 0}
+.ground-svg{width:100%;height:auto;display:block}
+.ground-svg .dike-g{transition:transform 1.2s cubic-bezier(.2,.7,.2,1)}
+.ground-fig:not(.in) .dike-g{transform:translateY(56px)}
+.two-worlds{display:grid;grid-template-columns:1fr 1fr;gap:clamp(18px,3vw,36px);margin-top:clamp(30px,4vh,54px)}
+@media (max-width:820px){.two-worlds{grid-template-columns:1fr}}
+.ww-note{display:flex;justify-content:space-between;gap:12px;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);padding-top:8px}
+.ww-note b{color:var(--orange);font-weight:500}
+
+/* ============================================================
+   7. CH.02 — FRAGMENTATION DIAGRAM
+   ============================================================ */
+.frag-stage{background:var(--paper2);border:1px solid var(--ink);padding:clamp(14px,2.5vw,34px);position:relative}
+.frag-svg{width:100%;height:auto;display:block;max-height:74vh;margin:0 auto}
+.frag-svg text{font-family:var(--mono);letter-spacing:.08em}
+.frag-svg .q-rect{fill:#E4E0D4;stroke:var(--ink);stroke-width:1.5;transition:fill .3s}
+.frag-svg .q-lab{font-size:15px;font-weight:500;fill:var(--ink)}
+.frag-svg .q-sub{font-size:9.5px;fill:rgba(16,16,16,.62)}
+.frag-svg .q-tag{font-size:26px;font-family:var(--disp);fill:transparent;stroke:var(--ink);stroke-width:1}
+.frag-svg .quad{transition:transform .65s cubic-bezier(.2,.8,.2,1)}
+.frag-svg .axis{opacity:0;transition:opacity .6s}
+.frag-svg .axis.on{opacity:1}
+.frag-svg .axis text{font-size:10px;fill:var(--ink)}
+.frag-svg .sq-out{fill:none;stroke:var(--ink);stroke-width:2.5}
+#mobius{stroke:var(--orange);stroke-width:9;fill:none;stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset 1.8s ease}
+#mobius.on{stroke-dashoffset:0}
+.frag-ctl{display:flex;gap:12px;flex-wrap:wrap;margin-top:20px}
+.frag-status{margin-top:14px;font-size:11px;color:var(--mut);min-height:1.4em}
+.frag-note{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;color:var(--mut);text-transform:uppercase;margin-top:8px}
+
+/* ============================================================
+   8. CH.03 — PINNED FREE-SECTION SCENE
+   ============================================================ */
+.pin{height:340vh}
+.pin-sticky{position:sticky;top:0;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+.pin-head{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:86px clamp(18px,4vw,54px) 8px}
+.pin-phase{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase}
+.pin-phase b{color:var(--orange);font-weight:500}
+.pin-bar{flex:1;max-width:340px;height:1px;background:rgba(232,228,219,.25);position:relative}
+.pin-bar i{position:absolute;left:0;top:-1px;height:3px;background:var(--orange);width:0%}
+.pin-svg-wrap{flex:1;min-height:0;padding:0 clamp(10px,2vw,40px)}
+.pin-svg{width:100%;height:100%}
+.pin-svg text{font-family:var(--mono);letter-spacing:.1em}
+.pin-caps{position:relative;padding:0 clamp(18px,4vw,54px) 30px;min-height:150px}
+.cap{position:absolute;left:clamp(18px,4vw,54px);right:clamp(18px,4vw,54px);bottom:30px;opacity:0;transform:translateY(10px);transition:opacity .5s,transform .5s;pointer-events:none;max-width:720px}
+.cap.on{opacity:1;transform:none}
+.cap h3{font-family:var(--disp);text-transform:uppercase;font-size:clamp(20px,2.6vw,30px);letter-spacing:.02em}
+.cap h3 b{color:var(--orange);font-weight:400}
+.cap p{color:rgba(232,228,219,.82);margin-top:8px;font-size:15px}
+.cap .n{font-family:var(--mono);font-size:10px;letter-spacing:.24em;color:var(--orange);display:block;margin-bottom:8px}
+
+/* ============================================================
+   9. CH.04 — HORIZONTAL PROMENADE
+   ============================================================ */
+.gal-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:22px}
+.gal-ctl{display:flex;align-items:center;gap:10px}
+.gal-btn{border:1px solid var(--fg);width:42px;height:42px;display:flex;align-items:center;justify-content:center;transition:background .2s,color .2s}
+.gal-btn:hover{background:var(--ink);color:var(--paper)}
+.gal-btn svg{width:16px;height:16px}
+.gal-prog{height:2px;background:var(--ln);margin-bottom:26px;position:relative}
+.gal-prog i{position:absolute;left:0;top:0;bottom:0;background:var(--orange);width:10%;transition:width .15s linear}
+.gal{display:flex;gap:clamp(14px,2vw,26px);overflow-x:auto;scroll-snap-type:x mandatory;padding:8px 4px 26px;cursor:grab;scrollbar-width:none}
+.gal::-webkit-scrollbar{display:none}
+.gal.drag{cursor:grabbing}
+.gal.drag *{pointer-events:none}
+.pc{flex:none;width:min(560px,82vw);scroll-snap-align:start;display:flex;flex-direction:column;gap:14px}
+.pc--n{width:min(300px,66vw)}
+.pc--n:nth-child(odd){margin-top:34px}
+.pc--w:nth-child(even){margin-top:-6px}
+.pc-tag{font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--orange);display:flex;align-items:center;gap:8px}
+.pc-tag::after{content:"";flex:1;height:1px;background:var(--ln)}
+.pc h3{font-family:var(--disp);text-transform:uppercase;font-size:clamp(20px,2.4vw,30px);letter-spacing:.02em}
+.pc p{font-size:14.5px;color:var(--mut);max-width:52ch}
+.gal-hint{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--mut);text-transform:uppercase;margin-top:4px}
+.gal-hint svg{width:14px;height:14px;color:var(--orange)}
+
+/* ============================================================
+   10. CH.05 — STRUCTURAL ANOMALIES
+   ============================================================ */
+.an-grid{display:grid;grid-template-columns:1.35fr 1fr;gap:clamp(16px,2.4vw,30px);margin-top:clamp(30px,4vh,50px)}
+@media (max-width:880px){.an-grid{grid-template-columns:1fr}}
+.an{background:#141412;color:var(--paper);border:1px solid rgba(232,228,219,.2);display:flex;flex-direction:column}
+.an--a{grid-row:span 2}
+.an-body{padding:clamp(18px,2.4vw,30px)}
+.an-no{font-family:var(--mono);font-size:10px;letter-spacing:.26em;color:var(--orange);text-transform:uppercase}
+.an h3{font-family:var(--disp);text-transform:uppercase;font-size:clamp(24px,2.8vw,40px);margin:10px 0 12px;letter-spacing:.02em}
+.an p{font-size:14.5px;color:rgba(232,228,219,.8)}
+.an-meta{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgba(232,228,219,.55);border-top:1px solid rgba(232,228,219,.2);margin-top:18px;padding-top:12px;line-height:1.9}
+.an .ph figcaption{color:rgba(232,228,219,.55)}
+.an:hover{border-color:var(--orange)}
+.balmond{display:flex;gap:18px;align-items:flex-start;margin-top:clamp(30px,4vh,46px);border-top:1px solid var(--ln);padding-top:26px;max-width:900px}
+.balmond svg{width:30px;height:30px;flex:none;color:var(--orange)}
+.balmond q{font-size:clamp(16px,1.8vw,20px);line-height:1.5;font-weight:500;quotes:"“" "”"}
+
+/* ============================================================
+   11. CH.06 — MATERIALS
+   ============================================================ */
+.mx{position:relative;--x:50%;aspect-ratio:16/8.5;overflow:hidden;border:1px solid var(--ink);cursor:ew-resize;user-select:none;touch-action:none}
+.mx-layer{position:absolute;inset:0}
+.mx-layer img{width:100%;height:100%;object-fit:cover;filter:saturate(.85) contrast(1.05);pointer-events:none}
+.mxA{clip-path:inset(0 calc(100% - var(--x)) 0 0)}
+.mx-lab{position:absolute;top:14px;font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;padding:7px 12px;pointer-events:none}
+.mx-lab--a{left:14px;background:var(--ink);color:var(--paper)}
+.mx-lab--b{right:14px;background:var(--orange);color:var(--ink)}
+.mx-handle{position:absolute;top:0;bottom:0;left:var(--x);width:2px;background:var(--orange);pointer-events:none}
+.mx-handle::before{content:"◂ ▸";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--orange);color:var(--ink);font-family:var(--mono);font-size:11px;padding:8px 9px;letter-spacing:1px;white-space:nowrap}
+.collisions{margin-top:clamp(30px,4vh,46px);border-top:2px solid var(--ink)}
+.col-row{display:grid;grid-template-columns:1fr auto 1fr;gap:clamp(10px,2vw,26px);align-items:center;padding:15px 4px;border-bottom:1px solid var(--ln)}
+.col-row .a{text-align:right;font-weight:600}
+.col-row .b{font-weight:600;color:var(--orange)}
+.col-x{font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--mut);display:flex;align-items:center;gap:8px;white-space:nowrap}
+.col-x::before,.col-x::after{content:"";width:clamp(14px,3vw,50px);height:1px;background:var(--ln)}
+@media (max-width:640px){.col-row{grid-template-columns:1fr;gap:4px;text-align:left!important}.col-row .a{text-align:left}.col-x{justify-content:flex-start}}
+
+/* ============================================================
+   12. CH.07 — LIGHT
+   ============================================================ */
+.light-fig{position:relative;border:1px solid var(--ink);aspect-ratio:16/8.5;overflow:hidden}
+.light-fig .ph-frame{position:absolute;inset:0;aspect-ratio:auto}
+.light-fig img{filter:saturate(.9) contrast(1.06)}
+.light-fig .n8{position:absolute;inset:0;background:rgba(10,10,9,.5);mix-blend-mode:multiply;opacity:0;transition:opacity .8s}
+.light-fig .n8g{position:absolute;inset:0;background:rgba(255,77,0,.16);mix-blend-mode:screen;opacity:0;transition:opacity .8s}
+.light-fig.night .n8,.light-fig.night .n8g{opacity:1}
+.light-cap{position:absolute;left:14px;bottom:14px;font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;background:var(--ink);color:var(--paper);padding:8px 12px;transition:background .3s,color .3s}
+.light-fig.night .light-cap{background:var(--orange);color:var(--ink)}
+.light-ctl{display:flex;gap:12px;margin:18px 0 30px;flex-wrap:wrap}
+.light-list{border-top:1px solid var(--ln);max-width:760px}
+.light-list li{display:flex;gap:16px;padding:13px 2px;border-bottom:1px solid var(--ln);list-style:none;font-size:14.5px}
+.light-list b{font-family:var(--mono);font-size:10px;letter-spacing:.16em;color:var(--orange);flex:none;width:150px;padding-top:4px;text-transform:uppercase}
+.light-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:clamp(26px,4vw,60px);align-items:start}
+@media (max-width:920px){.light-grid{grid-template-columns:1fr}}
+
+/* ============================================================
+   13. CH.08 — TIMELINE / CRITIQUE
+   ============================================================ */
+.tl{list-style:none;position:relative;margin:clamp(34px,5vh,56px) 0;padding:10px 0}
+.tl::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--ln)}
+@media (max-width:760px){.tl::before{left:8px}}
+.tl-i{position:relative;width:50%;padding:0 clamp(20px,3vw,44px) clamp(26px,4vh,40px)}
+@media (max-width:760px){.tl-i{width:100%;padding-left:34px;padding-right:0}}
+.tl-i:nth-child(odd){left:0;text-align:right}
+.tl-i:nth-child(odd) .tl-card{align-items:flex-end}
+@media (max-width:760px){.tl-i:nth-child(odd){text-align:left}.tl-i:nth-child(odd) .tl-card{align-items:flex-start}}
+.tl-i:nth-child(even){left:50%}
+@media (max-width:760px){.tl-i:nth-child(even){left:0}}
+.tl-dot{position:absolute;top:6px;width:11px;height:11px;background:var(--paper);border:2px solid var(--ink);border-radius:50%}
+.tl-i:nth-child(odd) .tl-dot{right:-6px}
+.tl-i:nth-child(even) .tl-dot{left:-6px}
+@media (max-width:760px){.tl-i .tl-dot{left:3px!important;right:auto}}
+.tl-yr{font-family:var(--disp);font-size:clamp(22px,2.6vw,32px);color:var(--orange);letter-spacing:.02em}
+.tl-card{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.tl-card h4{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase}
+.tl-card p{font-size:14px;color:var(--mut);max-width:44ch}
+.tl-i--theft .tl-card{background:var(--ink);color:var(--paper);padding:18px 20px;margin-top:10px}
+.tl-i--theft .tl-card p{color:rgba(232,228,219,.8)}
+.tl-i--theft .tl-dot{background:var(--orange);border-color:var(--orange)}
+.tl-i--theft h4{color:var(--orange);display:flex;align-items:center;gap:8px}
+.tl-i--theft h4 svg{width:14px;height:14px}
+
+/* ============================================================
+   14. CH.09 — PRINCIPLES / GENEALOGY / SYNTHESIS
+   ============================================================ */
+.kh-row{display:grid;grid-template-columns:180px 1fr;gap:clamp(20px,3vw,44px);align-items:start;margin-bottom:clamp(30px,4vh,50px)}
+@media (max-width:720px){.kh-row{grid-template-columns:1fr}}
+.acc{border-top:2px solid var(--ink)}
+.acc-item{border-bottom:1px solid var(--ln)}
+.acc-h{width:100%;display:flex;align-items:center;gap:clamp(14px,2.5vw,30px);padding:20px 2px;text-align:left}
+.acc-h .no{font-family:var(--mono);font-size:11px;color:var(--orange);letter-spacing:.15em;flex:none}
+.acc-h h3{font-family:var(--disp);text-transform:uppercase;font-size:clamp(19px,2.6vw,32px);letter-spacing:.02em;flex:1}
+.acc-h .pm{flex:none;width:34px;height:34px;border:1px solid var(--fg);display:flex;align-items:center;justify-content:center;transition:background .25s,color .25s}
+.acc-h .pm svg{width:15px;height:15px}
+.acc-item.open .acc-h .pm{background:var(--orange);border-color:var(--orange);color:var(--ink)}
+.acc-b{display:grid;grid-template-rows:0fr;transition:grid-template-rows .5s cubic-bezier(.2,.8,.2,1)}
+.acc-item.open .acc-b{grid-template-rows:1fr}
+.acc-b>div{overflow:hidden}
+.acc-in{display:flex;gap:clamp(20px,3vw,50px);padding:0 2px 26px;align-items:flex-start}
+.acc-in svg{width:84px;flex:none;color:var(--orange)}
+.acc-in p{max-width:62ch;font-size:15px;color:var(--mut)}
+@media (max-width:640px){.acc-in{flex-direction:column}}
+
+.gen{display:grid;grid-template-columns:repeat(12,1fr);gap:clamp(14px,2vw,26px);margin-top:clamp(26px,4vh,44px)}
+.gen-i{border:1px solid var(--ln);background:var(--paper2)}
+.gen-i:nth-child(1){grid-column:span 5}
+.gen-i:nth-child(2){grid-column:span 4;margin-top:38px}
+.gen-i:nth-child(3){grid-column:span 3;margin-top:76px}
+.gen-i:nth-child(4){grid-column:span 7;margin-top:-30px}
+@media (max-width:900px){.gen-i{grid-column:span 12!important;margin-top:0!important}}
+.gen-i .ph-frame{--ar:16/10}
+.gen-b{padding:16px 18px 18px}
+.gen-yr{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--orange)}
+.gen-b h4{font-family:var(--disp);text-transform:uppercase;font-size:19px;margin:6px 0 8px}
+.gen-dna{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);border-top:1px solid var(--ln);padding-top:10px;line-height:1.8}
+.gen-dna b{color:var(--ink);font-weight:500}
+.gen-diag{aspect-ratio:16/10;display:flex;align-items:center;justify-content:center;background:var(--ink)}
+.gen-diag svg{width:70%;color:var(--paper)}
+
+.syn{margin-top:clamp(46px,6vh,70px);border-top:2px solid var(--ink)}
+.syn-i{display:grid;grid-template-columns:90px 240px 1fr;gap:clamp(14px,2.5vw,34px);padding:20px 2px;border-bottom:1px solid var(--ln);align-items:baseline}
+@media (max-width:820px){.syn-i{grid-template-columns:60px 1fr}.syn-i p{grid-column:2}}
+.syn-i .n{font-family:var(--disp);font-size:26px;color:transparent;-webkit-text-stroke:1px var(--fg)}
+.syn-i h4{font-family:var(--mono);font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--orange)}
+.syn-i p{font-size:14.5px;color:var(--mut)}
+
+/* ============================================================
+   15. DATASHEET + FOOTER
+   ============================================================ */
+.ds{padding:clamp(70px,10vh,120px) 0}
+.ds-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0 clamp(26px,4vw,70px)}
+@media (max-width:820px){.ds-grid{grid-template-columns:1fr}}
+.ds-row{display:grid;grid-template-columns:190px 1fr;gap:18px;padding:15px 2px;border-bottom:1px solid var(--ln);align-items:baseline}
+.ds-row dt{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--mut)}
+.ds-row dd{font-size:14.5px}
+.ds-row dd b{color:var(--orange);font-weight:500}
+
+.footer{padding:clamp(60px,8vh,100px) 0 0}
+.foot-grid{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:clamp(26px,4vw,60px)}
+@media (max-width:880px){.foot-grid{grid-template-columns:1fr}}
+.foot-h{font-family:var(--mono);font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:var(--orange);margin-bottom:16px}
+.src-list{list-style:none}
+.src-list li{padding:8px 0;border-bottom:1px solid var(--ln);font-size:13px}
+.src-list a{text-decoration:none;border-bottom:1px solid var(--mut)}
+.src-list a:hover{color:var(--orange);border-color:var(--orange)}
+.src-list small{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--mut);text-transform:uppercase;margin-top:2px}
+#creditsList{list-style:none;max-height:280px;overflow:auto}
+#creditsList li{font-family:var(--mono);font-size:10px;letter-spacing:.05em;color:var(--mut);padding:6px 0;border-bottom:1px solid var(--ln);text-transform:uppercase}
+#creditsList a{text-decoration:underline;text-underline-offset:2px}
+.colophon{font-family:var(--mono);font-size:11px;line-height:2;color:var(--mut);letter-spacing:.06em}
+.bigword{font-family:var(--disp);text-transform:uppercase;text-align:center;font-size:clamp(3.2rem,12vw,11rem);line-height:.9;color:transparent;-webkit-text-stroke:1.5px rgba(232,228,219,.55);padding:clamp(40px,7vh,80px) 0 0;user-select:none}
+.bigword b{-webkit-text-stroke-color:var(--orange);color:transparent}
+.foot-end{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:22px 0 26px;border-top:1px solid var(--ln);margin-top:26px;flex-wrap:wrap;font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}
+.to-top{display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:var(--paper);border:1px solid var(--ln);padding:9px 14px;transition:background .2s,color .2s,border-color .2s}
+.to-top:hover{background:var(--orange);color:var(--ink);border-color:var(--orange)}
+.to-top svg{width:13px;height:13px}
+
+/* loader */
+#boot{position:fixed;inset:0;z-index:3000;background:var(--ink);color:var(--paper);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;transition:opacity .6s,visibility .6s;font-family:var(--mono);font-size:11px;letter-spacing:.34em;text-transform:uppercase}
+#boot.gone{opacity:0;visibility:hidden}
+#boot .bar{width:180px;height:2px;background:rgba(232,228,219,.2);position:relative;overflow:hidden}
+#boot .bar i{position:absolute;inset:0;background:var(--orange);transform-origin:left;animation:load 1.4s cubic-bezier(.6,0,.3,1) forwards}
+@keyframes load{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+</style>
+</head>
+<body>
+
+<div id="boot" aria-hidden="true"><span>Opening the section</span><div class="bar"><i></i></div></div>
+<div class="grain" aria-hidden="true"></div>
+
+<!-- ================= NAV ================= -->
+<nav class="nav" aria-label="Chapters">
+  <a href="#top" class="nav-brand" style="text-decoration:none">KUNSTHAL<small>OMA / KOOLHAAS — 1992</small></a>
+  <div class="nav-links" id="navLinks">
+    <a class="nav-l" href="#intro" data-ch="00">00</a>
+    <a class="nav-l" href="#ch01" data-ch="01">01</a>
+    <a class="nav-l" href="#ch02" data-ch="02">02</a>
+    <a class="nav-l" href="#ch03" data-ch="03">03</a>
+    <a class="nav-l" href="#ch04" data-ch="04">04</a>
+    <a class="nav-l" href="#ch05" data-ch="05">05</a>
+    <a class="nav-l" href="#ch06" data-ch="06">06</a>
+    <a class="nav-l" href="#ch07" data-ch="07">07</a>
+    <a class="nav-l" href="#ch08" data-ch="08">08</a>
+    <a class="nav-l" href="#ch09" data-ch="09">09</a>
+    <a class="nav-l" href="#dt" data-ch="DT">DT</a>
+  </div>
+  <span class="nav-read" id="navRead">CH.00 — THE ARGUMENT</span>
+</nav>
+
+<!-- level meter: the reading descends the 6 m of the site -->
+<aside id="lvl" aria-hidden="true">
+  <div class="trk" id="lvlTrk"><span class="dot" id="lvlDot"></span></div>
+  <div class="val" id="lvlVal">+6.00 M</div>
+</aside>
+
+<!-- ================= HERO ================= -->
+<header class="hero" id="top">
+  <figure class="ph ph--hero" data-q="general" data-cap="FIELD SURVEY — KUNSTHAL, ROTTERDAM">
+    <div class="ph-frame"><span class="ph-state">Retrieving archive</span></div>
+  </figure>
+  <div class="hero-veil" aria-hidden="true"></div>
+  <span class="hero-coord">51.9122° N — 4.4706° E · WESTZEEDIJK 341 · MUSEUMPARK</span>
+
+  <div class="hero-in">
+    <p class="hero-kick"><b>OMA — REM KOOLHAAS</b><span>ROTTERDAM · 1987–1992</span><span>AN INTERACTIVE ANALYSIS</span></p>
+    <h1 class="hero-t">
+      <span class="ht-l1">KUNST</span>
+      <span class="ht-dim" aria-hidden="true"><i></i><b>+6.00 M — DIKE ABOVE PARK</b><i></i></span>
+      <span class="ht-l2">STHAL</span>
+    </h1>
+    <p class="hero-lead">A hall of art with <strong>no collection</strong>. A square prism sliced open by a <strong>public ramp</strong> and a <strong>service road</strong>. A museum that refuses to be an image — and demands to be walked.</p>
+    <div class="hero-facts">
+      <span><b>7,000 m²</b>total area</span>
+      <span><b>3,300 m²</b>flexible galleries</span>
+      <span><b>+6.00 m</b>level shift absorbed</span>
+      <span><b>01.11.1992</b>inaugurated</span>
+    </div>
+  </div>
+  <div class="hero-cue"><i data-lucide="arrow-down"></i><span>DESCEND +6.00 → 0.00</span></div>
+</header>
+
+<!-- billboard marquee -->
+<div class="mq" aria-hidden="true">
+  <div class="mq-in" id="mqIn">
+    <div class="mq-seg">
+      <span>No permanent collection</span><span class="sq"></span>
+      <span>3,300 m² of flexible galleries</span><span class="sq"></span>
+      <span>A public ramp pierces the volume N–S</span><span class="sq"></span>
+      <span>A service road crosses it E–W</span><span class="sq"></span>
+      <span>Structure — Cecil Balmond / Ove Arup</span><span class="sq"></span>
+      <span>Curtains — Petra Blaisse</span><span class="sq"></span>
+      <span>Landscape — Yves Brunier</span><span class="sq"></span>
+      <span>Light — Günther Förg</span><span class="sq"></span>
+      <span>Inaugurated 01.11.1992</span><span class="sq"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 00 · INTRO ================= -->
+<section class="sec chap" id="intro" data-ch="00" data-ch-title="THE ARGUMENT">
+  <div class="wrap">
+    <div class="intro-grid">
+      <div>
+        <p class="chap-kicker rv">00 — The argument</p>
+        <h2 class="rv" style="font-family:var(--disp);font-size:clamp(2.4rem,6vw,5rem);text-transform:uppercase;line-height:.95;margin-bottom:26px">Not an object.<br>An event.</h2>
+        <div class="body-copy rv" style="--d:.1s">
+          <p>Designed by Rem Koolhaas and OMA between 1987 and 1992, the Kunsthal marks a decisive turn in late-twentieth-century architecture — the passage from the postmodern and deconstructivist debates of the 1980s toward a pragmatic, diagrammatic, processual way of building.</p>
+          <p>Against a backdrop of geopolitical upheaval — the fall of the Berlin Wall, the end of the Cold War, a nascent globalisation — the building embodies a redefined modernity. As Roberto Gargiani and Sanford Kwinter observed, architecture is no longer a static object but a <em>hypermodern space-event</em>: a spatial machine generated by flows, topography and programme.</p>
+          <p>This analysis unpacks the machinery: the geometry, the section, the kinetic structure engineered with Cecil Balmond, the transgressive materiality, and the urban condition — and shows how the Kunsthal seeded the theories that followed: the <strong style="color:var(--orange)">free section</strong>, the <strong style="color:var(--orange)">promenade programmatique</strong>, <strong style="color:var(--orange)">Bigness</strong> and <strong style="color:var(--orange)">Junkspace</strong>.</p>
+        </div>
+      </div>
+      <nav class="toc rv" style="--d:.2s" aria-label="Reading map">
+        <a href="#ch01"><span>01</span>Le sol — the ground<i>6.00 m</i></a>
+        <a href="#ch02"><span>02</span>La fragmentation<i>plan</i></a>
+        <a href="#ch03"><span>03</span>La coupe libre<i>section</i></a>
+        <a href="#ch04"><span>04</span>La promenade<i>movement</i></a>
+        <a href="#ch05"><span>05</span>La structure informelle<i>Balmond</i></a>
+        <a href="#ch06"><span>06</span>Matériaux<i>noble / pauvre</i></a>
+        <a href="#ch07"><span>07</span>La lumière<i>scenography</i></a>
+        <a href="#ch08"><span>08</span>Frictions<i>critique</i></a>
+        <a href="#ch09"><span>09</span>S, M, L, XL<i>theory</i></a>
+        <a href="#dt"><span>DT</span>Fiche technique<i>data</i></a>
+      </nav>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 01 · THE GROUND ================= -->
+<section class="sec chap" id="ch01" data-ch="01" data-ch-title="LE SOL / THE GROUND">
+  <div class="wrap">
+    <header class="chap-h rv">
+      <div class="chap-no">01</div>
+      <div>
+        <p class="chap-kicker">Ch.01 — Contexte urbain &amp; territorial</p>
+        <h2>Le sol<span class="en">The ground — a site between two worlds</span></h2>
+      </div>
+    </header>
+
+    <p class="lede rv">The artificial topography of the Netherlands hands the site a <strong>six-metre insult</strong>: the Museumpark lies low and slow to the north; the Westzeedijk — a dyke carrying an urban highway — stands high, fast and loud to the south. The Kunsthal refuses the monumental plinth. It does not level the difference. <strong>It drinks it.</strong></p>
+
+    <!-- stepped-ground diagram -->
+    <figure class="ground-fig rv" style="--d:.1s">
+      <svg class="ground-svg" viewBox="0 0 1000 320" role="img" aria-label="Section through the site: park level, six metre step, dyke level, with the Kunsthal straddling the step">
+        <defs>
+          <pattern id="hG" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <line x1="0" y1="0" x2="0" y2="12" stroke="#101010" stroke-width="1" opacity=".25"/>
+          </pattern>
+        </defs>
+        <!-- earth -->
+        <path d="M0,250 H560 V120 H1000 V320 H0 Z" fill="url(#hG)" stroke="none"/>
+        <path d="M0,250 H560 V120 H1000" fill="none" stroke="#101010" stroke-width="2.5"/>
+        <!-- the building slot straddling the step -->
+        <rect x="470" y="60" width="180" height="190" fill="#E8E4DB" stroke="#101010" stroke-width="2"/>
+        <line x1="470" y1="60" x2="650" y2="250" stroke="#FF4D00" stroke-width="4"/>
+        <text x="560" y="48" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" letter-spacing="2" fill="#101010">KUNSTHAL</text>
+        <text x="560" y="300" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" letter-spacing="1.5" fill="#101010" opacity=".65">THE PRISM STRADDLES THE STEP — THE SLOPENSION IS INTERIORIZED</text>
+        <!-- dimension on the step -->
+        <line x1="530" y1="120" x2="530" y2="250" stroke="#FF4D00" stroke-width="1.5"/>
+        <line x1="520" y1="120" x2="540" y2="120" stroke="#FF4D00" stroke-width="1.5"/>
+        <line x1="520" y1="250" x2="540" y2="250" stroke="#FF4D00" stroke-width="1.5"/>
+        <text x="516" y="190" text-anchor="end" font-family="IBM Plex Mono" font-size="12" fill="#FF4D00" letter-spacing="1">+6.00 M</text>
+        <!-- labels -->
+        <text x="120" y="272" font-family="IBM Plex Mono" font-size="11" letter-spacing="2" fill="#101010">MUSEUMPARK — 0.00 · SLOW · PEDESTRIAN</text>
+        <text x="700" y="104" font-family="IBM Plex Mono" font-size="11" letter-spacing="2" fill="#101010">WESTZEEDIJK — +6.00 · FAST · VEHICULAR</text>
+        <!-- park trees -->
+        <g stroke="#101010" fill="none" stroke-width="1.5" opacity=".7">
+          <circle cx="80" cy="238" r="10"/><path d="M80,248 V258"/>
+          <circle cx="140" cy="242" r="7"/><path d="M140,249 V258"/>
+          <circle cx="210" cy="236" r="11"/><path d="M210,247 V258"/>
+          <circle cx="280" cy="241" r="8"/><path d="M280,249 V258"/>
+          <circle cx="350" cy="237" r="10"/><path d="M350,247 V258"/>
+        </g>
+        <!-- car on dyke -->
+        <g transform="translate(760,102)">
+          <rect x="0" y="0" width="52" height="12" fill="#101010"/>
+          <rect x="12" y="-7" width="26" height="8" fill="#101010"/>
+          <circle cx="11" cy="14" r="5" fill="#FF4D00"/><circle cx="41" cy="14" r="5" fill="#FF4D00"/>
+        </g>
+      </svg>
+    </figure>
+
+    <div class="body-copy rv" style="--d:.15s">
+      <p>The building positions itself as <em>connection infrastructure</em>, not a distant monument. A public pedestrian ramp crosses the volume from end to end along a north–south axis, abolishing the boundary between public exterior and institutional interior. From the dyke, the south facade behaves as a billboard — announcing exhibitions to drivers, throwing the institution directly into the street.</p>
+    </div>
+
+    <blockquote class="pull rv" style="--d:.1s;margin-top:34px">The Kunsthal does not stand on the ground — it is its dynamic extrusion.<small>The report — rapport au sol et au paysage</small></blockquote>
+
+    <div class="two-worlds">
+      <figure class="ph rv" data-q="dike;general" data-cap="FIG. 1.1 — THE HIGH CITY: WESTZEEDIJK &amp; THE URBAN HIGHWAY" style="--ar:4/3">
+        <div class="ph-frame"><span class="ph-state">Retrieving archive</span></div>
+      </figure>
+      <figure class="ph rv" style="--d:.12s" data-q="park;general" data-cap="FIG. 1.2 — THE LOW CITY: MUSEUMPARK" style="--ar:4/3">
+        <div class="ph-frame"><span class="ph-state">Retrieving archive</span></div>
+      </figure>
+    </div>
+    <div class="two-worlds" style="margin-top:0">
+      <p class="ww-note rv"><span>THE DIKE — SPEED · NOISE · ASPHALT</span><b>INFRASTRUCTURE</b></p>
+      <p class="ww-note rv" style="--d:.12s"><span>THE PARK — SLOWNESS · CONTEMPLATION · GREEN</span><b>LANDSCAPE</b></p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 02 · FRAGMENTATION ================= -->
+<section class="sec chap" id="ch02" data-ch="02" data-ch-title="LA FRAGMENTATION / PLAN">
+  <div class="wrap">
+    <header class="chap-h rv">
+      <div class="chap-no">02</div>
+      <div>
+        <p class="chap-kicker">Ch.02 — Composition architecturale</p>
+        <h2>La fragmentation<span class="en">The sliced square — four quadrants, two axes</span></h2>
+      </div>
+    </header>
+
+    <p class="lede rv">From outside: a flattened square prism, almost banal — it could have been a shed. Inside, the volume is <strong>violently crossed</strong> by two distributive axes that cut it into four autonomous programme worlds. First, OMA fractures. Then — genius move — it sews the fragments back together.</p>
+
+    <div class="frag-stage rv" style="--d:.1s">
+      <svg class="frag-svg" id="fragSvg" viewBox="0 0 800 800" role="img" aria-label="Interactive plan diagram: a square sliced by a north-south ramp and an east-west service road into four quadrants, with a Mobius circuit drawn through them">
+        <defs>
+          <pattern id="hO" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <line x1="0" y1="0" x2="0" y2="9" stroke="#FF4D00" stroke-width="3"/>
+          </pattern>
+          <pattern id="hK" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">
+            <line x1="0" y1="0" x2="0" y2="9" stroke="#101010" stroke-width="2.4"/>
+          </pattern>
+          <marker id="arw" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 Z" fill="#FF4D00"/>
+          </marker>
+        </defs>
+
+        <!-- four quadrants -->
+        <g id="fq">
+          <g class="quad" id="qNW"><rect class="q-rect" x="100" y="100" width="270" height="270"/>
+            <text class="q-lab" x="126" y="180">Q1 — HALL 1</text>
+            <text class="q-sub" x="126" y="200">LOW · INTIMATE · COLUMNED</text>
+            <text class="q-tag" x="126" y="340" fill="transparent">1</text></g>
+          <g class="quad" id="qNE"><rect class="q-rect" x="430" y="100" width="270" height="270"/>
+            <text class="q-lab" x="452" y="180">Q2 — HALL 2 + GAL.</text>
+            <text class="q-sub" x="452" y="200">COLUMN-FREE · ZENITHAL</text>
+            <text class="q-tag" x="640" y="340" text-anchor="end">2</text></g>
+          <g class="quad" id="qSW"><rect class="q-rect" x="100" y="430" width="270" height="270"/>
+            <text class="q-lab" x="126" y="510">Q3 — AUDITORIUM</text>
+            <text class="q-sub" x="126" y="530">RAKED · HYBRID USE</text>
+            <text class="q-tag" x="126" y="670">3</text></g>
+          <g class="quad" id="qSE"><rect class="q-rect" x="430" y="430" width="270" height="270"/>
+            <text class="q-lab" x="452" y="510">Q4 — REST. · ADMIN</text>
+            <text class="q-sub" x="452" y="530">CANTILEVERED TO PARK</text>
+            <text class="q-tag" x="640" y="670" text-anchor="end">4</text></g>
+        </g>
+
+        <!-- axis 1: public ramp N-S -->
+        <g class="axis" id="axisNS">
+          <rect x="372" y="100" width="56" height="600" fill="url(#hO)" opacity=".85"/>
+          <text x="400" y="88" text-anchor="middle" text-anchor="middle">PUBLIC RAMP — N/S · +6.00 → 0.00</text>
+        </g>
+        <!-- axis 2: service road E-W -->
+        <g class="axis" id="axisEW">
+          <rect x="100" y="372" width="600" height="56" fill="url(#hK)" opacity=".8"/>
+          <text x="92" y="404" text-anchor="end">SERVICE ROAD — E/W · TRUCKS</text>
+        </g>
+
+        <!-- Mobius circuit -->
+        <path id="mobius" d="M220,220 H580 V580 H220 V340 H460 V460 H340" pathLength="1" marker-end="url(#arw)"/>
+        <circle id="mobStart" cx="220" cy="220" r="8" fill="#FF4D00" opacity="0"/>
+        <text id="mobLab" x="400" y="740" text-anchor="middle" fill="#FF4D00" font-size="11" opacity="0">ONE CONTINUOUS CIRCUIT — THE MÖBIUS RIBBON SEWS THE QUADRANTS TOGETHER</text>
+
+        <!-- outer square -->
+        <rect class="sq-out" x="100" y="100" width="600" height="600"/>
+        <text x="100" y="776" font-size="9.5" fill="#101010" opacity=".55">DIDACTIC DIAGRAM — AFTER OMA · GROUND FLOOR LOGIC · NOT TO SCALE</text>
+      </svg>
+
+      <div class="frag-ctl">
+        <button class="chip" id="btnNS" aria-pressed="false"><i data-lucide="move-vertical"></i>Public ramp N–S</button>
+        <button class="chip" id="btnEW" aria-pressed="false"><i data-lucide="move-horizontal"></i>Service road E–W</button>
+        <button class="chip chip-o" id="btnMB" aria-pressed="false"><i data-lucide="infinity"></i>Möbius circuit</button>
+      </div>
+      <p class="frag-status mono" id="fragStatus" aria-live="polite">ONE SQUARE — A SINGLE PRISM. THE PROGRAMME WAITS.</p>
+      <p class="frag-note">Operate the section-cut — engage both axes, then release the circuit.</p>
+    </div>
+
+    <div class="body-copy rv" style="--d:.15s;margin-top:34px">
+      <p>The second scheme of 1988 — <em>Kunsthal II</em> — replaced the interlocking constructivist volumes of the first proposal with a strategy of <strong>compaction</strong>: every heterogeneous function condensed into one abstract square box. Complexity would no longer be produced by the facade, but by the voids, the inclinations and the interior circulation.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 03 · FREE SECTION (PINNED) ================= -->
+<section class="sec sec--dark pin" id="ch03" data-ch="03" data-ch-title="LA COUPE LIBRE / SECTION">
+  <div class="pin-sticky">
+    <div class="pin-head">
+      <span class="pin-phase" id="pinPhase">PHASE <b>1/3</b> — THE STACK</span>
+      <div class="pin-bar"><i id="pinBar"></i></div>
+      <span class="pin-phase" style="opacity:.6">SCROLL 0.00 → +6.00 M</span>
+    </div>
+
+    <div class="pin-svg-wrap">
+      <svg class="pin-svg" id="pinSvg" viewBox="0 0 1200 720" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Animated cross-section: stacked floors tilt and connect into one continuous inclined circuit">
+        <defs>
+          <marker id="arw2" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 Z" fill="#FF4D00"/>
+          </marker>
+        </defs>
+
+        <!-- ground: park low left, dyke high right -->
+        <path d="M0,640 H430 V460 H1200 V720 H0 Z" fill="#1c1a17"/>
+        <path d="M0,640 H430 V460 H1200" fill="none" stroke="#E8E4DB" stroke-width="2"/>
+        <text x="52" y="670" font-size="12" fill="#E8E4DB" opacity=".65">MUSEUMPARK — 0.00</text>
+        <text x="1062" y="450" font-size="11" fill="#E8E4DB" opacity=".65">WESTZEEDIJK +6.00</text>
+
+        <!-- fixed dimension line -->
+        <g stroke="#E8E4DB" opacity=".55">
+          <line x1="118" y1="460" x2="118" y2="640"/>
+          <line x1="111" y1="460" x2="125" y2="460"/>
+          <line x1="111" y1="640" x2="125" y2="640"/>
+        </g>
+        <text x="106" y="556" font-size="11" fill="#FF4D00" transform="rotate(-90 106 556)" text-anchor="middle">+6.00 M</text>
+
+        <!-- envelope -->
+        <polygon points="150,200 1050,200 1050,460 430,460 430,640 150,640" fill="rgba(232,228,219,.04)" stroke="rgba(232,228,219,.7)" stroke-width="1.5"/>
+
+        <!-- stage-A level labels (fade out while tilting) -->
+        <g id="gLevels" fill="rgba(232,228,219,.7)" font-size="12">
+          <text x="1042" y="642" text-anchor="end">L1 — 0.00</text>
+          <text x="1042" y="548" text-anchor="end">L2 — +3.00</text>
+          <text x="1042" y="454" text-anchor="end">L3 — +6.00</text>
+          <text x="1042" y="360" text-anchor="end">L4 — +9.00</text>
+          <text x="1042" y="266" text-anchor="end">ROOF</text>
+        </g>
+
+        <!-- public ramp through the section -->
+        <g id="gPub" opacity="0">
+          <path d="M40,646 L1060,460 L1150,460" fill="none" stroke="#E8E4DB" stroke-width="3" stroke-dasharray="12 8" opacity=".8"/>
+          <text x="815" y="466" font-size="11" fill="#E8E4DB" transform="rotate(-10.3 815 466)">PUBLIC RAMP — THE URBAN SHORT-CIRCUIT</text>
+        </g>
+
+        <!-- the five slabs -->
+        <g id="sg1"><rect x="0" y="0" width="900" height="14" fill="#E8E4DB"/></g>
+        <g id="sg2"><rect x="0" y="0" width="900" height="14" fill="#E8E4DB"/></g>
+        <g id="sg3"><rect x="0" y="0" width="900" height="14" fill="#E8E4DB"/></g>
+        <g id="sg4"><rect x="0" y="0" width="900" height="14" fill="#E8E4DB"/></g>
+        <g id="sg5"><rect x="0" y="0" width="900" height="14" fill="#E8E4DB"/></g>
+
+        <!-- Hall 1 column grid -->
+        <g id="gCols" fill="#E8E4DB" opacity="0">
+          <rect x="170" y="614" width="6" height="26"/><rect x="212" y="614" width="6" height="26"/>
+          <rect x="254" y="614" width="6" height="26"/><rect x="296" y="614" width="6" height="26"/>
+          <rect x="338" y="614" width="6" height="26"/><rect x="380" y="614" width="6" height="26"/>
+          <rect x="422" y="614" width="6" height="26"/>
+        </g>
+
+        <!-- roof garden planting -->
+        <g id="gRoof" stroke="#E8E4DB" fill="none" stroke-width="1.5" opacity="0">
+          <g><circle cx="210" cy="233" r="6"/><path d="M210,239 V248"/></g>
+          <g><circle cx="300" cy="233" r="5"/><path d="M300,238 V248"/></g>
+          <g><circle cx="390" cy="233" r="7"/><path d="M390,240 V248"/></g>
+          <g><circle cx="480" cy="233" r="5"/><path d="M480,238 V248"/></g>
+          <g><circle cx="570" cy="233" r="6"/><path d="M570,239 V248"/></g>
+          <g><circle cx="660" cy="233" r="5"/><path d="M660,238 V248"/></g>
+          <g><circle cx="750" cy="233" r="7"/><path d="M750,240 V248"/></g>
+          <g><circle cx="840" cy="233" r="5"/><path d="M840,238 V248"/></g>
+          <g><circle cx="930" cy="233" r="6"/><path d="M930,239 V248"/></g>
+        </g>
+
+        <!-- zenithal light -->
+        <g id="gLight" stroke="#E8E4DB" stroke-width="2" stroke-dasharray="6 6" opacity="0">
+          <line x1="830" y1="212" x2="830" y2="440"/><line x1="880" y1="212" x2="880" y2="440"/><line x1="930" y1="212" x2="930" y2="440"/>
+          <text x="950" y="230" font-size="11" fill="#E8E4DB" stroke="none">ZENITHAL LIGHT</text>
+        </g>
+
+        <!-- the Möbius loop -->
+        <path id="loopPath" d="M170,594 L470,594 L486,584 L800,462 L1030,454 L1050,508 L778,424 Q430,640 170,594"
+              fill="none" stroke="#FF4D00" stroke-width="5" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1" marker-end="url(#arw2)"/>
+        <circle id="loopStart" cx="170" cy="594" r="6" fill="#FF4D00" opacity="0"/>
+        <g id="gCross" opacity="0">
+          <circle cx="470" cy="570" r="9" fill="none" stroke="#FF4D00" stroke-width="2"/>
+          <text x="470" y="545" text-anchor="middle" font-size="11" fill="#FF4D00">THE CROSSING — PUBLIC &amp; MUSEUM FLOWS</text>
+        </g>
+
+        <!-- tiny human figures -->
+        <g id="gFigures" stroke="#E8E4DB" stroke-width="2" fill="none" opacity="0">
+          <g><circle cx="105" cy="606" r="4.5"/><path d="M105,610 V630 M105,630 L99,644 M105,630 L111,644 M105,616 L97,622 M105,616 L113,622"/></g>
+          <g><circle cx="620" cy="516" r="4.5"/><path d="M620,520 V540 M620,540 L614,552 M620,540 L626,552"/></g>
+          <g><circle cx="1105" cy="436" r="4.5"/><path d="M1105,440 V455 M1105,455 L1099,468 M1105,455 L1111,468"/></g>
+        </g>
+
+        <!-- stage-C labels -->
+        <g id="gLabels" fill="rgba(232,228,219,.85)" font-size="12" opacity="0">
+          <text x="176" y="588">HALL 1 — COMPRESSION</text>
+          <text x="560" y="512" transform="rotate(-21 560 512)">EXHIBITION RAMP</text>
+          <text x="806" y="450">HALL 2 — EXPANSION</text>
+          <text x="838" y="414" transform="rotate(17 838 414)">AUDITORIUM — INVERSE SLOPE</text>
+          <text x="176" y="222">ROOF GARDEN — THE THIRD NATURE</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="pin-caps">
+      <div class="cap on" id="cap1"><span class="n">Phase 1/3 — The stack</span><h3>FLOOR UPON <b>FLOOR</b></h3><p>The modern inheritance: levels as independent horizontal strata. Le Corbusier freed the plan from its load-bearing walls — but the section remained a stack of inert pancakes.</p></div>
+      <div class="cap" id="cap2"><span class="n">Phase 2/3 — The tilt</span><h3>FLOORS STOP BEING <b>FLOORS</b></h3><p>The slabs pivot, tilt and slide. Floor becomes ramp, ramp becomes seating, seating becomes ground. The section thickens into an interior topography.</p></div>
+      <div class="cap" id="cap3"><span class="n">Phase 3/3 — The free section</span><h3>ONE CONTINUOUS <b>CIRCUIT</b></h3><p>A Möbius ribbon sews the four quadrants back together — while the public ramp crosses the machine. Vertical and diagonal continuity replace the stack: the section is finally free.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 04 · PROMENADE ================= -->
+<section class="sec chap" id="ch04" data-ch="04" data-ch-title="LA PROMENADE / MOVEMENT">
+  <div class="wrap">
+    <header class="chap-h rv">
+      <div class="chap-no">04</div>
+      <div>
+        <p class="chap-kicker">Ch.04 — Analyse spatiale &amp; circulations</p>
+        <h2>La promenade<span class="en">The programmatic walk — compression &amp; expansion</span></h2>
+      </div>
+    </header>
+
+    <p class="lede rv" style="max-width:900px">The space is fundamentally <strong>cinematic</strong> — built for the moving body, immune to static or frontal apprehension. Far from Le Corbusier's contemplative <em>promenade architecturale</em>, circulation here is the building's main programme: a syncopated three-dimensional spiral that pushes the body forward through alternating spatial pressures.</p>
+  </div>
+
+  <div class="wrap">
+    <div class="gal-head rv">
+      <p class="gal-hint"><i data-lucide="move-horizontal"></i>Drag / scroll — walk the circuit</p>
+      <div class="gal-ctl">
+        <button class="gal-btn" id="galL" aria-label="Scroll gallery left"><i data-lucide="chevron-left"></i></button>
+        <button class="gal-btn" id="galR" aria-label="Scroll gallery right"><i data-lucide="chevron-right"></i></button>
+      </div>
+    </div>
+    <div class="gal-prog"><i id="galBar"></i></div>
+
+    <div class="gal" id="gal">
+      <article class="pc pc--n rv"><figure class="ph" data-q="interior;general" data-cap="Survey 4.1" style="--ar:3/4"><div class="ph-frame"><span class="ph-state">Retrieving</span></div></figure>
+        <div><span class="pc-tag">Compression</span><h3>The threshold</h3><p>Compressed, shadowed entry sequences direct the body — the museum begins before the ticket.</p></div></article>
+      <article class="pc pc--w rv" style="--d:.05s"><figure class="ph" data-q="interior;general" data-cap="Survey 4.2" style="--ar:16/10"><div class="ph-frame"><span class="ph-state">Retrieving</span></div></figure>
+        <div><span class="pc-tag">Compression</span><h3>Hall 1 — the undergrowth</h3><p>A low, dense forest of close-set columns: an architectural undergrowth, intimate and dark, at park level.</p></div></article>
+      <article class="pc pc--n rv"><figure class="ph" data-q="interior;general" data-cap="Survey 4.3" style="--ar:3/4"><div class="ph-frame"><span class="ph-state">Retrieving</span></div></figure>
+        <div><span class="pc-tag">Transition</span><h3>The ramp</h3><p>The floor abandons the horizontal. Inclination imposes rhythm — biomechanics make stillness difficult; movement becomes the room.</p></div></article>
+      <article class="pc pc--w rv" style="--d:.05s"><figure class="ph" data-q="interior;general" data-cap="Survey 4.4" style="--ar:16/10"><div class="ph-frame"><span class="ph-state">Retrieving</span></div></figure>
+        <div><span class="pc-tag">Expansion</span><h3>Hall 2 — the release</h3><p>Vast, column-free, flooded with controlled zenithal light: the great dilatation, capable of swallowing monumental works.</p></div></article>
+      <article class="pc pc--n rv"><figure class="ph" data-q="interior;general" data-cap="Survey 4.5" style="--ar:3/4"><div class="ph-frame"><span class="ph-state">Retrieving</span></div></figure>
+        <div><span class="pc-tag">Crossing</span><h3>The graze</h3><p>Through a single pane of glass, the paying visitor brushes past the passing stranger on the public ramp — two flows, one membrane.</p></div></article>
+      <article class="pc pc--w rv" style="--d:.05s"><figure class="ph" data-q="interior;general" data-cap="Survey 4.6" style="--ar:16/10"><div class="ph-frame"><span class="ph-state">Retrieving</span></div></figure>
+        <div><span class="pc-tag">Hybrid</span><h3>The auditorium</h3><p>Seats on a rake whose slope runs against the exhibition circuit — lecture hall, event theatre and major circulation route, all at once.</p></div></article>
+      <article class="pc pc--n rv"><figure class="ph" data-q="general" data-cap="Survey 4.7" style="--ar:3/4"><div class="ph-frame"><span class="ph-state">Retrieving</span></div></figure>
+        <div><span class="pc-tag">Release</span><h3>The roof garden</h3><p>A suspended third nature — mineral and vegetal — reattached to the earth by the internal spiral.</p></div></article>
+    </div>
+
+    <blockquote class="pull rv" style="margin-top:44px">The space is free, but the body is directed.<small>The report — critique dialectique</small></blockquote>
+  </div>
+</section>
+
+<!-- ================= 05 · STRUCTURE ================= -->
+<section class="sec chap" id="ch05" data-ch="05" data-ch-title="LA STRUCTURE INFORMELLE / BALMOND">
+  <div class="wrap">
+    <header class="chap-h rv">
+      <div class="chap-no">05</div>
+      <div>
+        <p class="chap-kicker">Ch.05 — Structure &amp; logique constructive</p>
+        <h2>La structure informelle<span class="en">Balmond's anomalies — engineering as disturbance</span></h2>
+      </div>
+    </header>
+
+    <p class="lede rv" style="max-width:900px">With Cecil Balmond of Ove Arup, engineering stops solving loads silently and starts <strong>choreographing space</strong>. No Cartesian grid à la Mies: columns spring at unexpected angles, lean on their neighbours, and give the vertiginous impression the building is about to move.</p>
+
+    <div class="an-grid">
+      <article class="an an--a rv">
+        <figure class="ph ph--dark" data-q="general" data-cap="FIG. 5.1 — STRUCTURAL SURVEY" style="--ar:4/3"><div class="ph-frame"><span class="ph-state">Retrieving</span></div></figure>
+        <div class="an-body">
+          <p class="an-no">Anomaly 01 — Hall 2 roof</p>
+          <h3>The orange truss</h3>
+          <p>A massive steel truss, painted signal orange, breaks boldly past the roofline of Hall 2 — one and a half metres of cantilever, held out over the city like a dare. It explains nothing, resolves nothing, and is unforgettable. Structure as narrative disturbance.</p>
+          <p class="an-meta">Cantilever +1.50 m beyond roofline · "As if someone had left it there by mistake" · Signal-orange finish</p>
+        </div>
+      </article>
+      <article class="an rv" style="--d:.08s">
+        <figure class="ph ph--dark" data-q="interior;general" data-cap="FIG. 5.2 — STRUCTURAL SURVEY" style="--ar:16/9"><div class="ph-frame"><span class="ph-state">Retrieving</span></div></figure>
+        <div class="an-body">
+          <p class="an-no">Anomaly 02 — Hall 2 ceiling</p>
+          <h3>The red line</h3>
+          <p>A slender tension tube crosses the roof on an enigmatic, asymmetric trajectory — a "fine red line" refusing any evident tectonic logic to the profane eye.</p>
+          <p class="an-meta">Tension tube · asymmetric trajectory · logic withheld</p>
+        </div>
+      </article>
+      <article class="an rv" style="--d:.16s">
+        <figure class="ph ph--dark" data-q="interior;general" data-cap="FIG. 5.3 — STRUCTURAL SURVEY" style="--ar:16/9"><div class="ph-frame"><span class="ph-state">Retrieving</span></div></figure>
+        <div class="an-body">
+          <p class="an-no">Anomaly 03 — Hall 1</p>
+          <h3>Tree-trunk columns</h3>
+          <p>Cylindrical steel columns sheathed in hollowed-out tree trunks — primitive nature rammed into the high-tech prism, defying the load-bearing grid with apparent irony.</p>
+          <p class="an-meta">Hollowed trunks over steel · nature vs. rationality</p>
+        </div>
+      </article>
+    </div>
+
+    <div class="balmond rv">
+      <i data-lucide="route"></i>
+      <q>The columns are a punctuation of space — a random rhythm that refuses complacency. Engineering of the highest order, deployed to introduce deliberateness into the arbitrary.</q>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 06 · MATERIALS ================= -->
+<section class="sec chap" id="ch06" data-ch="06" data-ch-title="MATÉRIAUX / NOBLE ↔ PAUVRE">
+  <div class="wrap">
+    <header class="chap-h rv">
+      <div class="chap-no">06</div>
+      <div>
+        <p class="chap-kicker">Ch.06 — Matériaux &amp; textures</p>
+        <h2>Matériaux<span class="en">Noble ↔ pauvre — the collision palette</span></h2>
+      </div>
+    </header>
+
+    <p class="lede rv" style="max-width:860px">OMA juxtaposes "noble" materials, heavy with institutional connotation, with "poor" ones pulled straight from the industrial catalogue. The permanent tactile and visual shock <strong>desacralises the cultural institution</strong> — aligning the museum with the street, the infrastructure, the commercial shed.</p>
+
+    <!-- draggable juxtaposition -->
+    <div class="mx rv" id="mx" style="--d:.1s" role="slider" aria-label="Compare the noble and poor material registers" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" tabindex="0">
+      <div class="mx-layer mxB"><div class="ph" data-q="dike;general" data-cap="" style="position:absolute;inset:0"><div class="ph-frame" style="position:absolute;inset:0;aspect-ratio:auto"><span class="ph-state" style="display:none"></span></div></div><span class="mx-lab mx-lab--b">Register B — Poor</span></div>
+      <div class="mx-layer mxA"><div class="ph" data-q="interior;general" data-cap="" style="position:absolute;inset:0"><div class="ph-frame" style="position:absolute;inset:0;aspect-ratio:auto"><span class="ph-state" style="display:none"></span></div></div><span class="mx-lab mx-lab--a">Register A — Noble</span></div>
+      <div class="mx-handle" aria-hidden="true"></div>
+    </div>
+    <p class="mono rv" style="font-size:10px;letter-spacing:.2em;color:var(--mut);margin-top:10px;text-transform:uppercase">Drag the blade — the two registers coexist without transition</p>
+
+    <div class="collisions rv" style="--d:.1s">
+      <div class="col-row"><span class="a">Precious marble</span><span class="col-x">COLLIDES WITH</span><span class="b">Corrugated polycarbonate</span></div>
+      <div class="col-row"><span class="a">Refined wood parquet</span><span class="col-x">COLLIDES WITH</span><span class="b">Raw asphalt floor</span></div>
+      <div class="col-row"><span class="a">Natural stone cladding</span><span class="col-x">COLLIDES WITH</span><span class="b">Base aluminium profiles</span></div>
+      <div class="col-row"><span class="a">Exposed architectural concrete</span><span class="col-x">COLLIDES WITH</span><span class="b">Industrial plastic sheeting</span></div>
+      <div class="col-row"><span class="a">Petra Blaisse's heavy grey velvet — gold-film circles, sound-absorbing, kinetic</span><span class="col-x">COLLIDES WITH</span><span class="b">The unyielding hardness of reinforced concrete</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 07 · LIGHT ================= -->
+<section class="sec chap" id="ch07" data-ch="07" data-ch-title="LA LUMIÈRE / LIGHT">
+  <div class="wrap">
+    <header class="chap-h rv">
+      <div class="chap-no">07</div>
+      <div>
+        <p class="chap-kicker">Ch.07 — Lumière naturelle &amp; artificielle</p>
+        <h2>La lumière<span class="en">Light as scenography — never dogma</span></h2>
+      </div>
+    </header>
+
+    <div class="light-grid">
+      <div>
+        <p class="lede rv" style="font-size:clamp(16px,1.7vw,20px)">Transparency at the Kunsthal is never hygienic or Bauhaus-dogmatic — it is a <strong>purely scenographic tool</strong>, revealing the mechanism of the museum-machine, then slamming shut a few metres further on.</p>
+        <div class="light-ctl rv" style="--d:.08s">
+          <button class="chip on" id="btnDay" aria-pressed="true"><i data-lucide="sun"></i>Day — polycarbonate milk</button>
+          <button class="chip" id="btnNight" aria-pressed="false"><i data-lucide="moon"></i>Night — Förg's neon</button>
+        </div>
+        <div class="light-fig rv" id="lightFig" style="--d:.12s">
+          <figure class="ph" data-q="general" data-cap="" style="position:absolute;inset:0"><div class="ph-frame" style="position:absolute;inset:0;aspect-ratio:auto"><span class="ph-state" style="display:none"></span></div></figure>
+          <div class="n8" aria-hidden="true"></div><div class="n8g" aria-hidden="true"></div>
+          <span class="light-cap" id="lightCap">DAYLIGHT SURVEY — MILKY, SHADOWLESS, GREENHOUSE-INDUSTRIAL</span>
+        </div>
+      </div>
+      <div>
+        <ul class="light-list rv" style="--d:.1s">
+          <li><b>Polycarbonate</b><span>Diffuses a milky, blind, homogeneous light — hard shadows deleted; the atmosphere of a botanical or industrial greenhouse.</span></li>
+          <li><b>Ultra-clear glass</b><span>Pierces that opacity with frames of photographic precision — onto the park's foliage or the frenzy of the highway.</span></li>
+          <li><b>Lanterns of Hall 2</b><span>Zenithal light integrated into the roof structure; an unpredictable alternation of matt and transparent panels produces the "surprising vistas".</span></li>
+          <li><b>Günther Förg</b><span>A specific light installation in the restaurant zone — nocturnal reflections and the aesthetics of urban neon.</span></li>
+        </ul>
+        <figure class="ph rv" style="--d:.15s;margin-top:24px" data-q="night;interior" data-cap="FIG. 7.1 — NOCTURNAL SURVEY" style="--ar:4/3">
+          <div class="ph-frame"><span class="ph-state">Retrieving</span></div>
+        </figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 08 · CRITIQUE / TIMELINE ================= -->
+<section class="sec chap" id="ch08" data-ch="08" data-ch-title="FRICTIONS / CRITIQUE">
+  <div class="wrap">
+    <header class="chap-h rv">
+      <div class="chap-no">08</div>
+      <div>
+        <p class="chap-kicker">Ch.08 — Analyse critique &amp; afterlives</p>
+        <h2>Frictions<span class="en">Freedom vs. control — theft, and acupuncture</span></h2>
+      </div>
+    </header>
+
+    <p class="lede rv" style="max-width:880px">The radical hybridation carries inevitable tensions. The building promises absolute programme flexibility — yet the terrifying efficiency of the ramp spiral dictates the visitor's route, limiting wandering and spontaneous return. <strong>The space is free; the body is directed.</strong> And hyper-permeability, in October 2012, met museum security head-on.</p>
+
+    <ol class="tl">
+      <li class="tl-i rv"><span class="tl-dot"></span><span class="tl-yr">1987</span>
+        <div class="tl-card"><h4>Kunsthal I — the restrained scheme</h4><p>Interlocking volumes with distant echoes of 1920s Russian constructivism — a critical distance from both historicist postmodernism and gratuitous deconstructivist dislocation.</p></div></li>
+      <li class="tl-i rv"><span class="tl-dot"></span><span class="tl-yr">1988</span>
+        <div class="tl-card"><h4>Kunsthal II — the diagram</h4><p>Facing cost limits and a reduced footprint, OMA radically rethinks: compaction of every function into a single abstract prism — the diagram of the built building.</p></div></li>
+      <li class="tl-i rv"><span class="tl-dot"></span><span class="tl-yr">1989–92</span>
+        <div class="tl-card"><h4>Construction — with Arup</h4><p>Balmond and Koolhaas engineer the informal structure: oblique columns, the orange truss, the red line. Inauguration on 1 November 1992.</p></div></li>
+      <li class="tl-i tl-i--theft rv"><span class="tl-dot"></span><span class="tl-yr">10.2012</span>
+        <div class="tl-card"><h4><i data-lucide="lock"></i>The theft</h4><p>Seven priceless canvases — Picasso, Monet, Matisse among them — stolen in minutes. Observers indirectly blamed the building's open, permeable, generic disposition, ill-integrated with high museum security.</p></div></li>
+      <li class="tl-i rv"><span class="tl-dot"></span><span class="tl-yr">2014</span>
+        <div class="tl-card"><h4>Acupuncture renovation — Ellen van Loon</h4><p>OMA operates on its own building without denaturing its raw DNA: the entrance moves to the calm of the park, drastic energy upgrades and LED, security woven in invisibly.</p></div></li>
+      <li class="tl-i rv"><span class="tl-dot"></span><span class="tl-yr">→ Today</span>
+        <div class="tl-card"><h4>A perfectible organism</h4><p>The renovation confirms OMA's intrinsic pragmatism: architecture not as an untouchable artwork, but as a living, improvable organism — twenty-two years young.</p></div></li>
+    </ol>
+
+    <figure class="ph rv" data-q="general" data-cap="FIG. 8.1 — AFTER THE ACUPUNCTURE: KUNSTHAL, 2014–" style="--ar:21/9">
+      <div class="ph-frame"><span class="ph-state">Retrieving</span></div>
+    </figure>
+  </div>
+</section>
+
+<!-- ================= 09 · S,M,L,XL ================= -->
+<section class="sec chap" id="ch09" data-ch="09" data-ch-title="S,M,L,XL / THEORY">
+  <div class="wrap">
+    <header class="chap-h rv">
+      <div class="chap-no">09</div>
+      <div>
+        <p class="chap-kicker">Ch.09 — Principes de Rem Koolhaas</p>
+        <h2>S, M, L, XL<span class="en">Four principles born in Rotterdam, 1995</span></h2>
+      </div>
+    </header>
+
+    <div class="kh-row">
+      <figure class="ph rv" data-q="koolhaas" data-cap="REM KOOLHAAS — OMA" style="--ar:3/4">
+        <div class="ph-frame"><span class="ph-state">Retrieving</span></div>
+      </figure>
+      <p class="lede rv" style="--d:.1s" style="font-size:clamp(16px,1.8vw,21px)">Several cardinal concepts that Koolhaas formalised in <em>S,M,L,XL</em> (1995, with Bruce Mau) find their first fully-built materialisation in the Kunsthal. Open each principle:</p>
+    </div>
+
+    <div class="acc rv" id="acc">
+      <div class="acc-item open">
+        <button class="acc-h" aria-expanded="true"><span class="no">P.1</span><h3>La coupe libre — the free section</h3><span class="pm"><i data-lucide="minus"></i></span></button>
+        <div class="acc-b"><div><div class="acc-in">
+          <svg viewBox="0 0 84 48" fill="none" stroke="currentColor" stroke-width="3"><path d="M6,42 H78"/><path d="M6,28 L40,22 78,12"/><path d="M6,12 L30,8 52,16 78,4"/></svg>
+          <p>If Le Corbusier liberated the plan from its load-bearing walls, Koolhaas liberates the section from its stacked floors. The inclination of the slabs connects levels without rupture — an interior topography where the very differentiation between storeys becomes obsolete.</p>
+        </div></div></div>
+      </div>
+      <div class="acc-item">
+        <button class="acc-h" aria-expanded="false"><span class="no">P.2</span><h3>Bigness — the theory of scale</h3><span class="pm"><i data-lucide="plus"></i></span></button>
+        <div class="acc-b"><div><div class="acc-in">
+          <svg viewBox="0 0 84 48" fill="none" stroke="currentColor" stroke-width="3"><rect x="6" y="34" width="10" height="10"/><rect x="22" y="24" width="18" height="20"/><rect x="46" y="10" width="32" height="34"/></svg>
+          <p>Only 7,000 m², yet it already runs on the rules of the very large: violent heterogeneity of uses, ubiquitous engineering, infrastructural circulation needs that override facade composition — rendering architecture-as-formal-art obsolete.</p>
+        </div></div></div>
+      </div>
+      <div class="acc-item">
+        <button class="acc-h" aria-expanded="false"><span class="no">P.3</span><h3>Junkspace — the aesthetic of residue</h3><span class="pm"><i data-lucide="plus"></i></span></button>
+        <div class="acc-b"><div><div class="acc-in">
+          <svg viewBox="0 0 84 48" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="4 4"><path d="M12,24 C12,10 34,6 44,12 C58,4 78,12 74,26 C84,38 66,46 54,40 C42,50 16,44 18,32 C8,32 8,26 12,24 Z"/></svg>
+          <p>The assumed use of industrial materials, unqualified interstitial spaces, raw infrastructure and exposed ducts announces Koolhaas's critical fascination with Junkspace — the residual, generic, continuous, conditioned space of the coming global metropolis.</p>
+        </div></div></div>
+      </div>
+      <div class="acc-item">
+        <button class="acc-h" aria-expanded="false"><span class="no">P.4</span><h3>Montage — collision &amp; juxtaposition</h3><span class="pm"><i data-lucide="plus"></i></span></button>
+        <div class="acc-b"><div><div class="acc-in">
+          <svg viewBox="0 0 84 48" fill="none" stroke="currentColor" stroke-width="3"><rect x="6" y="8" width="34" height="30"/><rect x="30" y="16" width="44" height="30"/><path d="M36,24 L52,38 M52,24 L36,38" stroke-width="2"/></svg>
+          <p>A cinematic, surrealist-exquisite-corpse method: antagonistic environments telescoped together — a rustic tree trunk against an industrial polycarbonate screen — manufacturing metropolitan intensity by the sheer power of friction.</p>
+        </div></div></div>
+      </div>
+    </div>
+
+    <!-- genealogy -->
+    <p class="kicker rv" style="margin-top:clamp(50px,7vh,80px)">Genetic laboratory — the Kunsthal's DNA in later OMA work</p>
+    <div class="gen">
+      <article class="gen-i rv">
+        <figure class="ph" data-q="educ" data-cap="EDUCATORIUM, UTRECHT" style="--ar:16/10"><div class="ph-frame"><span class="ph-state">Retrieving</span></div></figure>
+        <div class="gen-b"><span class="gen-yr">1993–1997</span><h4>Educatorium</h4>
+          <p class="gen-dna">Inherits <b>the folded surface</b> — the concrete slab curls into floor, then wall, then ceiling, radicalising the ramps and raked auditorium of Rotterdam.</p></div>
+      </article>
+      <article class="gen-i rv" style="--d:.08s">
+        <figure class="ph" data-q="bordeaux" data-cap="MAISON À BORDEAUX" style="--ar:16/10"><div class="ph-frame"><span class="ph-state">Retrieving</span></div></figure>
+        <div class="gen-b"><span class="gen-yr">1994–1998</span><h4>Maison à Bordeaux</h4>
+          <p class="gen-dna">Inherits <b>the movement machine</b> — a hydraulic platform, a room without walls; the refusal of static, enclosed vertical transitions.</p></div>
+      </article>
+      <article class="gen-i rv" style="--d:.16s">
+        <figure class="ph" data-q="seattle" data-cap="SEATTLE CENTRAL LIBRARY" style="--ar:16/10"><div class="ph-frame"><span class="ph-state">Retrieving</span></div></figure>
+        <div class="gen-b"><span class="gen-yr">1999–2004</span><h4>Seattle Library</h4>
+          <p class="gen-dna">Inherits <b>programmatic infrastructure</b> — the continuous book spiral and floating plateaus: the Rotterdam circulation diagram at metropolitan scale.</p></div>
+      </article>
+      <article class="gen-i rv" style="--d:.2s">
+        <div class="gen-diag" role="img" aria-label="Diagram of pleated interior floors">
+          <svg viewBox="0 0 120 60" fill="none" stroke="currentColor" stroke-width="3"><path d="M6,12 H114"/><path d="M6,24 L34,24 46,34 74,34 86,24 114,24"/><path d="M6,40 L44,40 56,50 114,50"/><path d="M6,52 H30" stroke="#FF4D00"/></svg>
+        </div>
+        <div class="gen-b"><span class="gen-yr">1992 — UNBUILT</span><h4>Jussieu libraries, Paris</h4>
+          <p class="gen-dna">Inherits <b>the continuous interior landscape</b> — pleated floors and ramps folding the public space of the city inside the building. No photographs exist: it was never built.</p></div>
+      </article>
+    </div>
+
+    <!-- synthesis -->
+    <p class="kicker rv" style="margin-top:clamp(50px,7vh,80px)">Synthèse — a built manifesto in four strategies</p>
+    <div class="syn">
+      <div class="syn-i rv"><span class="n">S.1</span><h4>Infrastructure of movement</h4><p>The pedestrian ramp (N–S) and the service road (E–W) fracture the pure prism into four autonomous quadrants.</p></div>
+      <div class="syn-i rv" style="--d:.05s"><span class="n">S.2</span><h4>The free section</h4><p>A Möbius ribbon of inclined slabs resolves the fracture into one continuous, captivating interior topography.</p></div>
+      <div class="syn-i rv" style="--d:.1s"><span class="n">S.3</span><h4>Informal engineering</h4><p>With Balmond: deliberate arbitrariness — the orange truss, the red line, the tree-trunk columns. Structure exhibited, logic withheld.</p></div>
+      <div class="syn-i rv" style="--d:.15s"><span class="n">S.4</span><h4>Absolute porosity</h4><p>The building absorbs the site's six-metre fall and captures the road — a programmatic bridge between the noisy dyke and the artificial calm of the Museumpark.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= DATASHEET ================= -->
+<section class="sec sec--dark ds" id="dt" data-ch="DT" data-ch-title="FICHE TECHNIQUE">
+  <div class="wrap">
+    <header class="chap-h rv">
+      <div class="chap-no" style="-webkit-text-stroke-color:var(--paper)">DT</div>
+      <div>
+        <p class="chap-kicker">Datasheet — technical record</p>
+        <h2>Fiche technique<span class="en">Kunsthal Rotterdam — the complete record</span></h2>
+      </div>
+    </header>
+    <dl class="ds-grid">
+      <div class="ds-row rv"><dt>Project</dt><dd><b>Kunsthal Rotterdam</b> — "hall of art", no permanent collection</dd></div>
+      <div class="ds-row rv"><dt>Architect</dt><dd>OMA · Rem Koolhaas — project architect: Fuminori Hoshino · partner: Ellen van Loon</dd></div>
+      <div class="ds-row rv"><dt>Location</dt><dd>Museumpark, Westzeedijk 341, Rotterdam, Netherlands</dd></div>
+      <div class="ds-row rv"><dt>Key dates</dt><dd>Conception 1987–1989 · Construction 1989–1992 · <b>Inaugurated 01.11.1992</b></dd></div>
+      <div class="ds-row rv"><dt>Renovation</dt><dd>2013–2014 — OMA under Ellen van Loon ("acupuncture")</dd></div>
+      <div class="ds-row rv"><dt>Programme</dt><dd>7 exhibition spaces · auditorium · restaurant · offices · shop → KunsthalLAB</dd></div>
+      <div class="ds-row rv"><dt>Client</dt><dd>City of Rotterdam</dd></div>
+      <div class="ds-row rv"><dt>Area</dt><dd><b>7,000 m²</b> total · <b>3,300 m²</b> dedicated exhibition space</dd></div>
+      <div class="ds-row rv"><dt>Budget</dt><dd>≈ USD 12.5 million (initial)</dd></div>
+      <div class="ds-row rv"><dt>Structure</dt><dd>Ove Arup &amp; Partners — <b>Cecil Balmond</b> · Theo Wulffraat &amp; Partners</dd></div>
+      <div class="ds-row rv"><dt>Collaborators</dt><dd>Petra Blaisse / Inside Outside (kinetic curtains) · Yves Brunier (landscape) · Günther Förg (light installation)</dd></div>
+      <div class="ds-row rv"><dt>Context</dt><dd>South edge of the Museumpark, against the Westzeedijk dyke — <b>+6.00 m</b> level difference absorbed</dd></div>
+    </dl>
+  </div>
+</section>
+
+<!-- ================= FOOTER ================= -->
+<footer class="sec sec--dark footer">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <p class="foot-h">The building refuses to be an image</p>
+        <p class="colophon">It demands to be walked, experienced and consumed in all its density and metropolitan instability. More than thirty years after its inauguration, the Kunsthal remains the absolute prototype of an architecture that accepts — with jubilation — the contradictions, ugliness and energies of the contemporary world.</p>
+        <p class="colophon" style="margin-top:18px">THIS DOCUMENT — a single interactive HTML file · set in Anton, Space Grotesk &amp; IBM Plex Mono · diagrams drawn after OMA's project logic.</p>
+      </div>
+      <div>
+        <p class="foot-h">Sources — works cited</p>
+        <ul class="src-list">
+          <li><a href="https://www.kunsthal.nl/en/about-kunsthal/building/" target="_blank" rel="noopener">The Building — Kunsthal Rotterdam</a><small>kunsthal.nl</small></li>
+          <li><a href="https://www.oma.com/projects/kunsthal" target="_blank" rel="noopener">Kunsthal — OMA</a><small>oma.com</small></li>
+          <li><a href="https://archeyes.com/kunsthal-rotterdam-by-oma-a-study-in-spatial-complexity/" target="_blank" rel="noopener">Kunsthal Rotterdam by OMA: A Study in Spatial Complexity</a><small>archeyes.com</small></li>
+          <li><a href="https://www.dezeen.com/2014/02/04/oma-updates-kunsthal-gallery-rotterdam/" target="_blank" rel="noopener">OMA follows up Kunsthal art robbery with major security improvements</a><small>dezeen.com</small></li>
+          <li><a href="https://www.domusweb.it/en/from-the-archive/2023/03/02/rem-koolhaas-kunsthal-in-rotterdam-from-the-domus-archive.html" target="_blank" rel="noopener">Koolhaas, the Kunsthal and the Rotterdam mythology</a><small>domusweb.it</small></li>
+          <li><a href="https://www.metalocus.es/en/news/22-years-nothing-new-kunsthall-oma" target="_blank" rel="noopener">22 years is nothing — New Kunsthal by OMA</a><small>metalocus.es</small></li>
+          <li><a href="https://balmondstudio.com/work/kunsthal-rotterdam.php" target="_blank" rel="noopener">Kunsthal Rotterdam — Balmond Studio</a><small>balmondstudio.com</small></li>
+        </ul>
+      </div>
+      <div>
+        <p class="foot-h">Photographic credits — live from Wikimedia Commons</p>
+        <ul id="creditsList"><li style="border:none">Retrieving the archive…</li></ul>
+      </div>
+    </div>
+    <p class="bigword" aria-hidden="true">WALK IT — <b>DON'T LOOK</b> AT IT</p>
+    <div class="foot-end">
+      <span>KUNSTHAL · ROTTERDAM · MMXXIV ANALYSIS</span>
+      <span id="yr"></span>
+      <a class="to-top" href="#top">Back to +6.00 m<i data-lucide="arrow-up"></i></a>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ============================================================
+   ENGINE 0 — helpers
+   ============================================================ */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const smooth=x=>x*x*(3-2*x);
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const stripTags=s=>esc(String(s||'').replace(/<[^>]*>/g,' ').replace(/&amp;/g,'&').replace(/\s+/g,' ').trim()).slice(0,60);
+
+/* ============================================================
+   ENGINE 1 — real photographs via the Wikimedia Commons API
+   Every figure marked .ph is filled with a genuine, freely
+   licensed photograph of the subject, with automatic credit.
+   ============================================================ */
+const POOL_QUERIES={
+  general:'Kunsthal Rotterdam',
+  interior:'Kunsthal Rotterdam interior',
+  dike:'Kunsthal Rotterdam Westzeedijk',
+  park:'Museumpark Rotterdam',
+  night:'Kunsthal Rotterdam night',
+  koolhaas:'Rem Koolhaas',
+  educ:'Educatorium Utrecht',
+  bordeaux:'Maison à Bordeaux OMA',
+  seattle:'Seattle Central Library'
+};
+const pools={}, usedTitles=new Set(), credits=[];
+
+async function fetchPool(q,limit){
+  const api='https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*'
+    +'&generator=search&gsrnamespace=6&gsrlimit='+limit
+    +'&gsrsearch='+encodeURIComponent(q)
+    +'&prop=imageinfo&iiprop=url%7Csize%7Cmime%7Cextmetadata&iiurlwidth=1400';
+  const r=await fetch(api); const j=await r.json();
+  const out=[];
+  for(const p of Object.values((j.query&&j.query.pages)||{})){
+    const ii=p.imageinfo&&p.imageinfo[0]; if(!ii) continue;
+    if(!/^image\/(jpeg|png|webp)$/i.test(ii.mime||'')) continue;
+    const base=(p.title||'').replace(/^File:/,'').replace(/\.[a-z0-9]+$/i,'');
+    if(/(^|[\s\-_.])(logo|map|diagram|drawing|sketch|plan|banner|chart)([\s\-_.]|$)/i.test(base)) continue;
+    if((ii.width||0)<650) continue;
+    out.push({
+      title:base,
+      url:ii.thumburl||ii.url,
+      page:ii.descriptionurl||'#',
+      artist:stripTags(ii.extmetadata&&ii.extmetadata.Artist&&ii.extmetadata.Artist.value)||'Unknown author',
+      license:stripTags(ii.extmetadata&&ii.extmetadata.LicenseShortName&&ii.extmetadata.LicenseShortName.value)||''
+    });
+  }
+  return out;
+}
+
+/* offline / failure fallback: an authored "archive" plate, never a broken box */
+function placeholderImg(label){
+  const svg=`<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='800'>`
+    +`<rect width='1200' height='800' fill='#d9d4c8'/>`
+    +`<filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2'/></filter>`
+    +`<rect width='1200' height='800' filter='url(#n)' opacity='0.14'/>`
+    +`<rect x='60' y='60' width='1080' height='680' fill='none' stroke='#101010' stroke-width='2'/>`
+    +`<text x='600' y='395' text-anchor='middle' font-family='monospace' font-size='30' letter-spacing='8' fill='#101010'>${label}</text>`
+    +`<text x='600' y='440' text-anchor='middle' font-family='monospace' font-size='16' letter-spacing='4' fill='#FF4D00'>KUNSTHAL / OMA / ROTTERDAM</text></svg>`;
+  return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+}
+
+async function initPhotos(){
+  const figs=$$('.ph');
+  const needed=new Set();
+  figs.forEach(f=>f.dataset.q.split(';').forEach(k=>needed.add(k.trim())));
+  await Promise.all([...needed].map(async k=>{
+    try{ pools[k]=await fetchPool(POOL_QUERIES[k]||k, k==='general'?50:30); }
+    catch(e){ pools[k]=[]; }
+  }));
+  figs.forEach(f=>{
+    const keys=f.dataset.q.split(';').map(s=>s.trim());
+    const frame=f.querySelector('.ph-frame');
+    const cap=f.dataset.cap||'';
+    let pick=null;
+    for(const k of [...keys,'general']){
+      const p=(pools[k]||[]).find(i=>!usedTitles.has(i.url));
+      if(p){ pick=p; break; }
+    }
+    const figcap=document.createElement('figcaption');
+    const img=new Image();
+    img.decoding='async'; img.loading='lazy'; img.alt=cap||'Kunsthal, Rotterdam';
+    if(pick){
+      usedTitles.add(pick.url);
+      img.src=pick.url;
+      const done=()=>f.classList.add('ok');
+      img.onload=done;
+      img.onerror=()=>{ img.onerror=null; img.src=placeholderImg('ARCHIVE IMAGE UNAVAILABLE'); done(); };
+      credits.push(pick);
+      figcap.innerHTML=`<span>${cap}</span><span class="cred">PHOTO © ${pick.artist} · ${pick.license||'CC'} · <a href="${pick.page}" target="_blank" rel="noopener">COMMONS</a></span>`;
+    }else{
+      img.src=placeholderImg('ARCHIVE OFFLINE'); img.onload=()=>f.classList.add('ok');
+      figcap.innerHTML=`<span>${cap}</span><span class="cred">ARCHIVE PLATE — SUBSTITUTED</span>`;
+    }
+    frame.prepend(img);
+    if(!f.classList.contains('ph--hero') && !f.closest('.mx') && !f.closest('.light-fig')) f.appendChild(figcap);
+    else if(f.classList.contains('ph--hero')) f.appendChild(figcap);
+  });
+  const ul=$('#creditsList');
+  if(ul) ul.innerHTML=credits.length
+    ? credits.map(c=>`<li>${esc(c.title)} — © ${c.artist} (${c.license||'CC'}) · <a href="${c.page}" target="_blank" rel="noopener">source</a></li>`).join('')
+    : '<li style="border:none">Archive unreachable — connect to the internet to load the real photographs.</li>';
+}
+
+/* ============================================================
+   ENGINE 2 — scroll systems (level meter, pinned section)
+   ============================================================ */
+const lvlDot=$('#lvlDot'), lvlVal=$('#lvlVal'), lvlTrk=$('#lvlTrk');
+if(lvlTrk){ for(let i=0;i<=6;i++){ const t=document.createElement('span'); t.className='tick'; t.style.top=((6-i)/6*100)+'%'; lvlTrk.appendChild(t);} }
+
+const pinSec=$('#ch03'), pinBar=$('#pinBar'), pinPhase=$('#pinPhase');
+const SLABS=[
+  {g:'sg1',ra:{x:150,y:618,r:0,w:900},rc:{x:150,y:600,r:0,w:320}},
+  {g:'sg2',ra:{x:150,y:524,r:0,w:900},rc:{x:486,y:590,r:-21,w:340}},
+  {g:'sg3',ra:{x:150,y:430,r:0,w:900},rc:{x:794,y:460,r:0,w:256}},
+  {g:'sg4',ra:{x:150,y:336,r:0,w:900},rc:{x:772,y:424,r:17,w:300}},
+  {g:'sg5',ra:{x:150,y:242,r:0,w:900},rc:{x:150,y:242,r:0,w:900}}
+];
+const setOp=(id,t)=>{const el=document.getElementById(id); if(el) el.setAttribute('opacity',t.toFixed(3));};
+function applyScene(tG,tL){
+  SLABS.forEach(s=>{
+    const g=document.getElementById(s.g);
+    g.setAttribute('transform',`translate(${lerp(s.ra.x,s.rc.x,tG).toFixed(1)} ${lerp(s.ra.y,s.rc.y,tG).toFixed(1)}) rotate(${lerp(s.ra.r,s.rc.r,tG).toFixed(2)})`);
+    g.querySelector('rect').setAttribute('width',lerp(s.ra.w,s.rc.w,tG).toFixed(1));
+  });
+  const lp=document.getElementById('loopPath');
+  lp.style.strokeDashoffset=String(1-tL);
+  document.getElementById('loopStart').setAttribute('opacity',tL>.02?1:0);
+  setOp('gLevels',1-tG); setOp('gCols',tG); setOp('gLabels',tG);
+  setOp('gLight',tG);   setOp('gPub',tG); setOp('gFigures',tG); setOp('gRoof',tG);
+  setOp('gCross',tL);
+}
+function setPhase(n,p){
+  [1,2,3].forEach(i=>{const c=document.getElementById('cap'+i); if(c) c.classList.toggle('on',i===n);});
+  const names={1:'THE STACK',2:'THE TILT',3:'THE FREE SECTION'};
+  if(pinPhase) pinPhase.innerHTML=`PHASE <b>${n}/3</b> — ${names[n]}`;
+  if(pinBar) pinBar.style.width=(p*100).toFixed(1)+'%';
+}
+function updPin(){
+  const r=pinSec.getBoundingClientRect();
+  const total=pinSec.offsetHeight-innerHeight;
+  const p=clamp(-r.top/Math.max(total,1),0,1);
+  const tG=smooth(clamp((p-0.18)/0.5,0,1));
+  const tL=smooth(clamp((p-0.62)/0.3,0,1));
+  applyScene(tG,tL);
+  setPhase(p<0.4?1:p<0.72?2:3,p);
+}
+let ticking=false;
+function onScroll(){
+  if(ticking) return; ticking=true;
+  requestAnimationFrame(()=>{
+    const max=document.documentElement.scrollHeight-innerHeight;
+    const p=max>0?clamp(scrollY/max,0,1):0;
+    const lv=6-6*p;
+    if(lvlVal) lvlVal.textContent=(lv>=0?'+':'')+lv.toFixed(2)+' M';
+    if(lvlDot) lvlDot.style.top=((1-lv/6)*100)+'%';
+    updPin();
+    ticking=false;
+  });
+}
+addEventListener('scroll',onScroll,{passive:true});
+addEventListener('resize',onScroll);
+if(RM){ applyScene(1,1); setPhase(3,1); } else { applyScene(0,0); setPhase(1,0); onScroll(); }
+
+/* ============================================================
+   ENGINE 3 — fragmentation diagram (Ch.02)
+   ============================================================ */
+const frag={ns:false,ew:false,mb:false};
+const QUAD_OFF={qNW:[-16,-14,-1.6],qNE:[16,-14,1.4],qSW:[-16,14,1.2],qSE:[16,14,-1.5]};
+function renderFrag(){
+  $('#axisNS').classList.toggle('on',frag.ns);
+  $('#axisEW').classList.toggle('on',frag.ew);
+  for(const id in QUAD_OFF){
+    const [ox,oy,or]=QUAD_OFF[id];
+    let dx=0,dy=0,rot=0;
+    if(frag.ns){dx+=ox*.85;dy+=oy*.4;}
+    if(frag.ew){dy+=oy*.85;dx+=ox*.35;}
+    if(frag.ns&&frag.ew){dx=ox;dy=oy;rot=or;}
+    document.getElementById(id).style.transform=`translate(${dx}px,${dy}px) rotate(${rot}deg)`;
+  }
+  const mb=$('#mobius');
+  mb.classList.toggle('on',frag.mb);
+  $('#mobStart').setAttribute('opacity',frag.mb?1:0);
+  $('#mobLab').setAttribute('opacity',frag.mb?1:0);
+  const n=(frag.ns?1:0)+(frag.ew?1:0);
+  $('#fragStatus').textContent=
+    frag.mb ? 'THE MÖBIUS RIBBON — ONE CONTINUOUS CIRCUIT SEWS THE FOUR WORLDS TOGETHER.' :
+    n===0 ? 'ONE SQUARE — A SINGLE PRISM. THE PROGRAMME WAITS.' :
+    n===1 ? 'ONE AXIS — THE SQUARE SPLITS INTO TWO WORLDS.' :
+    'TWO AXES — FOUR AUTONOMOUS QUADRANTS. THE CIRCUIT CAN NOW SEW THEM.';
+  [['#btnNS',frag.ns],['#btnEW',frag.ew],['#btnMB',frag.mb]].forEach(([s,v])=>{
+    const b=$(s); b.classList.toggle('on',v); b.setAttribute('aria-pressed',v);
+  });
+}
+ $('#btnNS').addEventListener('click',()=>{frag.ns=!frag.ns; if(!frag.ns) frag.mb=false; renderFrag();});
+ $('#btnEW').addEventListener('click',()=>{frag.ew=!frag.ew; if(!frag.ew) frag.mb=false; renderFrag();});
+ $('#btnMB').addEventListener('click',()=>{
+  frag.mb=!frag.mb;
+  if(frag.mb){frag.ns=true;frag.ew=true;}
+  renderFrag();
+});
+/* one-time automatic demonstration when the diagram enters view */
+let fragDemoDone=false;
+new IntersectionObserver((es,obs)=>{
+  es.forEach(e=>{
+    if(e.isIntersecting&&!fragDemoDone){
+      fragDemoDone=true; obs.disconnect();
+      if(RM){frag.ns=frag.ew=frag.mb=true;renderFrag();return;}
+      setTimeout(()=>{frag.ns=true;renderFrag();},500);
+      setTimeout(()=>{frag.ew=true;renderFrag();},1200);
+      setTimeout(()=>{frag.mb=true;renderFrag();},2100);
+    }
+  });
+},{threshold:.4}).observe($('#fragSvg'));
+renderFrag();
+
+/* ============================================================
+   ENGINE 4 — horizontal promenade gallery (Ch.04)
+   ============================================================ */
+const gal=$('#gal'), galBar=$('#galBar');
+let gDown=false,gX=0,gL=0;
+gal.addEventListener('pointerdown',e=>{
+  if(e.pointerType!=='mouse')return;
+  gDown=true;gX=e.clientX;gL=gal.scrollLeft;gal.classList.add('drag');
+  gal.setPointerCapture(e.pointerId);
+});
+gal.addEventListener('pointermove',e=>{ if(gDown) gal.scrollLeft=gL-(e.clientX-gX); });
+['pointerup','pointercancel'].forEach(ev=>gal.addEventListener(ev,()=>{gDown=false;gal.classList.remove('drag');}));
+gal.addEventListener('scroll',()=>{
+  const m=gal.scrollWidth-gal.clientWidth;
+  galBar.style.width=(m>0?10+(gal.scrollLeft/m)*90:100)+'%';
+},{passive:true});
+ $('#galL').addEventListener('click',()=>gal.scrollBy({left:-520,behavior:'smooth'}));
+ $('#galR').addEventListener('click',()=>gal.scrollBy({left:520,behavior:'smooth'}));
+
+/* ============================================================
+   ENGINE 5 — material juxtaposition slider (Ch.06)
+   ============================================================ */
+const mx=$('#mx');
+function setMx(clientX){
+  const r=mx.getBoundingClientRect();
+  const p=clamp((clientX-r.left)/r.width,.06,.94);
+  mx.style.setProperty('--x',(p*100).toFixed(1)+'%');
+  mx.setAttribute('aria-valuenow',Math.round(p*100));
+}
+mx.addEventListener('pointerdown',e=>{
+  mx.setPointerCapture(e.pointerId); setMx(e.clientX);
+  const mv=ev=>setMx(ev.clientX);
+  mx.addEventListener('pointermove',mv);
+  mx.addEventListener('pointerup',()=>mx.removeEventListener('pointermove',mv),{once:true});
+});
+mx.addEventListener('keydown',e=>{
+  const cur=parseFloat(getComputedStyle(mx).getPropertyValue('--x'))||50;
+  if(e.key==='ArrowLeft'){mx.style.setProperty('--x',clamp(cur-4,6,94)+'%');e.preventDefault();}
+  if(e.key==='ArrowRight'){mx.style.setProperty('--x',clamp(cur+4,6,94)+'%');e.preventDefault();}
+});
+
+/* ============================================================
+   ENGINE 6 — day / night toggle (Ch.07)
+   ============================================================ */
+const lightFig=$('#lightFig'), lightCap=$('#lightCap');
+function setLight(night){
+  lightFig.classList.toggle('night',night);
+  lightCap.textContent=night?'NIGHT SURVEY — FÖRG\'S NEON, REFLECTIONS, URBAN GLOW':'DAYLIGHT SURVEY — MILKY, SHADOWLESS, GREENHOUSE-INDUSTRIAL';
+  $('#btnDay').classList.toggle('on',!night); $('#btnDay').setAttribute('aria-pressed',!night);
+  $('#btnNight').classList.toggle('on',night); $('#btnNight').setAttribute('aria-pressed',night);
+}
+ $('#btnDay').addEventListener('click',()=>setLight(false));
+ $('#btnNight').addEventListener('click',()=>setLight(true));
+
+/* ============================================================
+   ENGINE 7 — principles accordion (Ch.09)
+   ============================================================ */
+ $$('#acc .acc-item').forEach(item=>{
+  item.querySelector('.acc-h').addEventListener('click',()=>{
+    const open=item.classList.contains('open');
+    $$('#acc .acc-item').forEach(i=>{i.classList.remove('open');i.querySelector('.acc-h').setAttribute('aria-expanded','false');});
+    if(!open){item.classList.add('open');item.querySelector('.acc-h').setAttribute('aria-expanded','true');}
+  });
+});
+
+/* ============================================================
+   ENGINE 8 — reveals, chapter tracking, boot
+   ============================================================ */
+const rvIO=new IntersectionObserver(es=>es.forEach(e=>{
+  if(e.isIntersecting){e.target.classList.add('in');rvIO.unobserve(e.target);}
+}),{threshold:.12});
+ $$('.rv').forEach(el=>rvIO.observe(el));
+
+const navRead=$('#navRead');
+const chIO=new IntersectionObserver(es=>es.forEach(e=>{
+  if(e.isIntersecting){
+    const n=e.target.dataset.ch, t=e.target.dataset.chTitle||'';
+    if(navRead) navRead.textContent=`CH.${n} / 09 — ${t}`;
+    $$('.nav-l').forEach(l=>l.classList.toggle('cur',l.dataset.ch===n));
+  }
+}),{rootMargin:'-42% 0px -52% 0px'});
+ $$('[data-ch]').forEach(s=>chIO.observe(s));
+
+ $('#yr').textContent='ANALYSIS SET IN '+new Date().getFullYear();
+if(window.lucide) lucide.createIcons();
+initPhotos().finally(()=>{ if(window.lucide) lucide.createIcons(); });
+addEventListener('load',()=>setTimeout(()=>$('#boot').classList.add('gone'),450));
+setTimeout(()=>$('#boot').classList.add('gone'),2600); /* safety */
+</script>
+</body>
+                                                                 </html>
